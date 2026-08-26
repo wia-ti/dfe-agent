@@ -10,7 +10,7 @@ jobs:
   test:
     name: test @dfe-agent/dfe-agent
     runs-on: ${{ matrix.os }}
-strategy:
+    strategy:
         fail-fast: false
         matrix:
           # Sprint 14: windows removido por bug Node 22 + better-sqlite3 cleanup
