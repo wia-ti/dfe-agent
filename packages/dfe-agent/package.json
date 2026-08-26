@@ -19,7 +19,7 @@
   "scripts": {
     "build": "tsc",
     "pretest": "npm run build",
-    "test": "node --experimental-strip-types --test \"tests/**/*.test.ts\"",
+    "test": "tsx --test \"tests/**/*.test.ts\"",
     "test:e2e": "powershell -ExecutionPolicy Bypass -File tests/e2e/smoke-test.ps1",
     "lint": "tsc --noEmit",
     "sync": "tsx scripts/sync-assets.ts",

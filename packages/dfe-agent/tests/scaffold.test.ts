@@ -62,13 +62,16 @@ test("package.json files[] inclui dist/, README.md, CHANGELOG.md", () => {
   assert.ok(pkg.files?.includes("CHANGELOG.md"));
 });
 
-test("tsconfig.json extends .opencode/tsconfig.json", () => {
+test("tsconfig.json tem outDir dist + rootDir src (sem extends — Sprint 14 round 8 inline)", () => {
   const tsconfigPath = resolve(PKG_ROOT, "tsconfig.json");
   assert.ok(existsSync(tsconfigPath), "tsconfig.json ausente");
   const tsconfig = JSON.parse(readFileSync(tsconfigPath, "utf8"));
-  assert.equal(tsconfig.extends, "../../.opencode/tsconfig.json");
+  // Sprint 14 round 8: removido extends para evitar 'noEmit' inherited do parent
+  // (CI Linux containers falhavam). tsconfig agora e' inline com todas as opcoes.
   assert.equal(tsconfig.compilerOptions.outDir, "./dist");
   assert.equal(tsconfig.compilerOptions.rootDir, "./src");
+  assert.equal(tsconfig.compilerOptions.noEmit, false);
+  assert.equal(tsconfig.compilerOptions.target, "ES2022");
 });
 
 test(".gitignore local ignora dist, node_modules, *.log", () => {
