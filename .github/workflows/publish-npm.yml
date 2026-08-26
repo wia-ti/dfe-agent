@@ -73,9 +73,12 @@ jobs:
           head -1 dist/bin/dfe-agent.js | grep -q "^#!/usr/bin/env node" \
             || (echo "missing shebang in dist/bin/dfe-agent.js" && exit 1)
 
-      - name: Publish to npm (public + provenance)
+      - name: Publish to npm (public)
+        # Sprint 14 round 13: removido --provenance (requer trusted publisher OIDC).
+        # Para re-habilitar provenance: configurar trusted publisher no npmjs.com
+        # e adicionar 'id-token: write' ao permissions block.
         working-directory: packages/dfe-agent
-        run: npm publish --access public --provenance
+        run: npm publish --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
