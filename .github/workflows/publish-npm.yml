@@ -44,7 +44,8 @@ jobs:
 
       - name: Sync assets from DFe-Agent root
         working-directory: packages/dfe-agent
-        run: npm run sync
+        # Bypass npm wrapper para argv deterministico (gate CI matrix ubuntu+windows x Node 20+22)
+        run: node --import tsx scripts/sync-assets.ts
 
       - name: Drift check (gate B.1)
         working-directory: packages/dfe-agent
