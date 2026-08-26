@@ -71,6 +71,9 @@ export function sync(): number {
 }
 
 // Executa quando invocado diretamente (nao em import)
-if (import.meta.url === `file:///${process.argv[1]?.replace(/\\/g, "/")}`) {
+const invokedDirectly =
+  process.argv[1]?.endsWith("sync-assets.ts")
+  || process.argv[1]?.endsWith("sync-assets.js");
+if (invokedDirectly) {
   process.exit(sync());
 }

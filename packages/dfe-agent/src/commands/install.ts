@@ -27,7 +27,7 @@ export interface InstallOptions {
   autoSetup?: boolean;
 }
 
-export function install(opts: InstallOptions): number {
+export async function install(opts: InstallOptions): Promise<number> {
   const target = resolve(process.cwd(), ".opencode");
   const targetAgent = `${target}/agent/dfe-agent.md`;
   const targetSkill = `${target}/skills/dfe-fiscal`;
@@ -69,14 +69,15 @@ export function install(opts: InstallOptions): number {
   // 4. Se --auto-setup, dispara update em sequencia
   if (opts.autoSetup) {
     console.info("[dfe-agent] --auto-setup acionado, disparando update...");
-    // dynamic import para evitar ciclo
-    return import("./update.js").then((m) => m.update({})).then((code: number) => {
-      console.info(`[dfe-agent] update finalizou com exit code ${code}`);
-      return code;
-    }).catch((err: Error) => {
-      console.error(`[dfe-agent] update falhou: ${err.message}`);
+    try {
+      const { update } = await import("./update.js");
+      const updateCode = await update({});
+      console.info(`[dfe-agent] update finalizou com exit code ${updateCode}`);
+      return updateCode;
+    } catch (err) {
+      console.error(`[dfe-agent] update falhou: ${(err as Error).message}`);
       return 3;
-    }) as unknown as number;
+    }
   }
 
   console.info(`[dfe-agent] proximos passos:`);

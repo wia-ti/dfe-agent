@@ -38,7 +38,7 @@ let pipelineSingleton: any | null = null;
 async function getExtractor(): Promise<any> {
   if (pipelineSingleton) return pipelineSingleton;
   env.allowLocalModels = false;
-  env.useFs = false;
+  env.useFS = false;
   pipelineSingleton = await pipeline("feature-extraction", MODEL_NAME);
   return pipelineSingleton;
 }

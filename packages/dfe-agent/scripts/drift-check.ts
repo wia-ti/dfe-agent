@@ -77,6 +77,9 @@ export function driftCheck(): number {
   return 0;
 }
 
-if (import.meta.url === `file:///${process.argv[1]?.replace(/\\/g, "/")}`) {
+const invokedDirectly =
+  process.argv[1]?.endsWith("drift-check.ts")
+  || process.argv[1]?.endsWith("drift-check.js");
+if (invokedDirectly) {
   process.exit(driftCheck());
 }

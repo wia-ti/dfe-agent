@@ -8,7 +8,8 @@
  * em outro arquivo — gate dfe-rules.md #4 + convencoes-gerais.md.
  */
 
-import { NO_EVIDENCE_MESSAGE, type Source } from "./index.js";
+import { NO_EVIDENCE_MESSAGE, MIN_RELEVANCE_SCORE } from "./constants.js";
+import type { Source } from "./index.js";
 
 export interface HydratedChunk {
   chunk_id: number;
@@ -17,6 +18,7 @@ export interface HydratedChunk {
   url: string;
   title: string;
   score: number;
+  published_at?: string | null;
 }
 
 export interface ContextResult {
@@ -24,18 +26,20 @@ export interface ContextResult {
   sources: Source[];
 }
 
-export const MIN_RELEVANCE_SCORE = 0.3;
-export const MIN_SOURCES = 1;
-
 /**
- * Heuristica de evidencia suficiente:
- * - >=1 chunk hidratado E
- * - max score >= MIN_RELEVANCE_SCORE
+ * Heuristica de evidencia suficiente (gate dfe-rules.md #4 + paridade Py).
+ *
+ * Convencao Py (`src/query/context_builder.py:60-71`): olhamos apenas o
+ * PRIMEIRO chunk (mais relevante no ranking). Se ele nao atinge o minimo,
+ * qualquer outro posterior tera score menor.
+ *
+ * Antes da Sprint 14.1, Node usava `Math.max(...)` que retornava True em
+ * cenarios com 1 chunk bom + N chunks ruins, divergindo do Py. Corrigido
+ * para paridade.
  */
 export function hasSufficientEvidence(chunks: HydratedChunk[]): boolean {
-  if (chunks.length < MIN_SOURCES) return false;
-  const maxScore = Math.max(...chunks.map((c) => c.score));
-  return maxScore >= MIN_RELEVANCE_SCORE;
+  if (chunks.length === 0) return false;
+  return chunks[0].score >= MIN_RELEVANCE_SCORE;
 }
 
 /**

@@ -13,9 +13,20 @@ test("contextBuilder.ts existe e expoe buildContext", () => {
   assert.match(src, /export function buildContext/);
 });
 
+test("constants.ts existe e expoe NO_EVIDENCE_MESSAGE canonico (gate dfe-rules.md #4)", () => {
+  const p = resolve(PKG_ROOT, "src/query/constants.ts");
+  assert.ok(existsSync(p), "src/query/constants.ts deve existir");
+  const src = readFileSync(p, "utf8");
+  assert.match(src, /export const NO_EVIDENCE_MESSAGE = "Nao encontrei base para responder"/);
+});
+
 test("contextBuilder retorna NO_EVIDENCE_MESSAGE literal em chunks vazios", () => {
+  // NO_EVIDENCE_MESSAGE vive em src/query/constants.ts (canonico; gate dfe-rules.md #4).
+  // contextBuilder.ts importa de constants.ts para evitar ciclo com index.ts.
   const src = readFileSync(resolve(PKG_ROOT, "src/query/contextBuilder.ts"), "utf8");
-  assert.match(src, /Nao encontrei base para responder/);
+  const constantsSrc = readFileSync(resolve(PKG_ROOT, "src/query/constants.ts"), "utf8");
+  assert.match(src, /NO_EVIDENCE_MESSAGE/);  // contextBuilder usa a constante
+  assert.match(constantsSrc, /Nao encontrei base para responder/);  // literal canonico
 });
 
 test("contextBuilder expoe hasSufficientEvidence", () => {

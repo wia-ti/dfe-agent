@@ -16,15 +16,17 @@ test("drift-check.ts existe e expoe funcao driftCheck", () => {
   const scriptPath = resolve(PKG_ROOT, "scripts/drift-check.ts");
   assert.ok(existsSync(scriptPath), "scripts/drift-check.ts deve existir (Task B.2)");
   const src = readFileSync(scriptPath, "utf8");
-  assert.match(src, /export.*function.*driftCheck/);
+  assert.match(src, /export function driftCheck|export.*function.*driftCheck/);
 });
 
 test("drift-check le source + dist e compara SHA-256", () => {
   const scriptPath = resolve(PKG_ROOT, "scripts/drift-check.ts");
   const src = readFileSync(scriptPath, "utf8");
   assert.match(src, /createHash|sha256/);
-  assert.match(src, /process\.exit\(1\)/);
-  assert.match(src, /process\.exit\(0\)/);
+  // driftCheck() retorna 0/1; o entry point faz process.exit(driftCheck())
+  assert.match(src, /return 1/);  // falha
+  assert.match(src, /return 0/);  // sucesso
+  assert.match(src, /process\.exit\(driftCheck\(\)\)/);
 });
 
 test("drift-check: source==dist -> exit 0", () => {

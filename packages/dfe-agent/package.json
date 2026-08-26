@@ -9,7 +9,7 @@
     "dfe-agent": "./dist/bin/dfe-agent.js"
   },
   "engines": {
-    "node": ">=20 <23"
+    "node": ">=20"
   },
   "files": [
     "dist/",
@@ -18,7 +18,9 @@
   ],
   "scripts": {
     "build": "tsc",
-    "test": "node --test --import tsx tests/",
+    "pretest": "npm run build",
+    "test": "node --experimental-strip-types --test \"tests/**/*.test.ts\"",
+    "test:e2e": "powershell -ExecutionPolicy Bypass -File tests/e2e/smoke-test.ps1",
     "lint": "tsc --noEmit",
     "sync": "tsx scripts/sync-assets.ts",
     "drift-check": "tsx scripts/drift-check.ts"
@@ -50,5 +52,9 @@
   "publishConfig": {
     "access": "public",
     "provenance": true
+  },
+  "allowScripts": {
+    "sharp@0.32.6": true,
+    "better-sqlite3@11.5.0": true
   }
 }

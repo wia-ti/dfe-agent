@@ -1,6 +1,6 @@
 ---
 name: dfe-fiscal
-description: "Use ONLY when the user asks about Brazilian Electronic Fiscal Documents (DF-e) — NF-e, NFC-e, CT-e, MDF-e, SPED, CONFAZ — or about Nota Técnica (NT), schemas XML da NF-e (tags UB/IBSCBS/cMunFGIBS/pIBSUF/etc.), Reforma Tributária do Consumo (RTC, LC 214/2025, IBS/CBS/Imposto Seletivo), IBPT, regras de validação, cClassTrib, CST, cCredPres, contributors exclusivos do IBS/CBS, eIBPT, ou when the request maps to the RAG pipeline of the DFe-Agent project (python -m src.collector, python -m src.indexer.ingest, python -m src.query, python -m src.ragctl). Triggers: NT 2025.002, tag UB, BSCBS, vIBSUF, grupo W03, cBenef, LC 214, monofasia, RAG fiscal."
+description: "Use ONLY when the user asks about Brazilian Electronic Fiscal Documents (DF-e) — NF-e, NFC-e, CT-e, MDF-e, SPED — or about Nota Técnica (NT), schemas XML da NF-e (tags UB/IBSCBS/cMunFGIBS/pIBSUF/etc.), Reforma Tributária do Consumo (RTC, LC 214/2025, IBS/CBS/Imposto Seletivo), IBPT, regras de validação, cClassTrib, CST, cCredPres, contributors exclusivos do IBS/CBS, eIBPT, ou when the request maps to the RAG pipeline of the DFe-Agent project (python -m src.collector, python -m src.indexer.ingest, python -m src.query, python -m src.ragctl). Triggers: NT 2025.002, tag UB, BSCBS, vIBSUF, grupo W03, cBenef, LC 214, monofasia, RAG fiscal."
 license: MIT
 ---
 

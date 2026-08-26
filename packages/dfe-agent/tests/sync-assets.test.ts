@@ -1,5 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
 import { mkdtempSync, rmSync, existsSync, readFileSync, statSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve, dirname } from "node:path";
@@ -39,7 +40,7 @@ test("sync-assets copia agent.md para dist/", () => {
     assert.ok(existsSync(src), "source deve existir");
     if (existsSync(prodDist)) {
       const sha = (p: string) =>
-        require("node:crypto").createHash("sha256").update(readFileSync(p)).digest("hex");
+        createHash("sha256").update(readFileSync(p)).digest("hex");
       assert.equal(sha(src), sha(prodDist), "SHA do source deve ser igual ao dist");
     }
   } finally {
@@ -53,7 +54,7 @@ test("sync-assets copia SKILL.md recursivamente", () => {
   assert.ok(existsSync(src), "source SKILL.md deve existir");
   if (existsSync(dst)) {
     const sha = (p: string) =>
-      require("node:crypto").createHash("sha256").update(readFileSync(p)).digest("hex");
+      createHash("sha256").update(readFileSync(p)).digest("hex");
     assert.equal(sha(src), sha(dst), "SHA do SKILL.md source deve ser igual ao dist");
   }
 });

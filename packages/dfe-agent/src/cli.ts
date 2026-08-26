@@ -17,6 +17,7 @@
  */
 
 import { parseArgs } from "node:util";
+import { fileURLToPath } from "node:url";
 
 const USAGE = `dfe-agent — agente opencode + base RAG de documentacao fiscal eletronica
 
@@ -81,7 +82,7 @@ export async function runCli(argv: string[]): Promise<number> {
 
   switch (cmd) {
     case "install":
-      return install({ autoSetup: Boolean(values.auto) });
+      return await install({ autoSetup: Boolean(values.auto) });
 
     case "update":
       return await update({});
@@ -100,7 +101,7 @@ export async function runCli(argv: string[]): Promise<number> {
     }
 
     case "status":
-      return status({ json: Boolean(values.json) });
+      return await status({ json: Boolean(values.json) });
 
     default:
       console.error(`[dfe-agent] comando desconhecido: ${cmd}`);
@@ -109,8 +110,14 @@ export async function runCli(argv: string[]): Promise<number> {
   }
 }
 
-// Executa quando invocado diretamente como binario
-if (import.meta.url === `file:///${process.argv[1]?.replace(/\\/g, "/")}`) {
+// Executa quando invocado diretamente como cli.ts OU cli.js (NÃO como binario
+// dist/bin/dfe-agent.js — esse path tem seu proprio entry point).
+// Comparacao exata via fileURLToPath evita heuristica fragil de endsWith.
+const thisFile = fileURLToPath(import.meta.url);
+const invokedDirectly =
+  process.argv[1] === thisFile
+  || process.argv[1]?.endsWith(`${thisFile.endsWith(".ts") ? "cli.ts" : "cli.js"}`);
+if (invokedDirectly) {
   runCli(process.argv.slice(2)).then(
     (code) => process.exit(code),
     (err) => {

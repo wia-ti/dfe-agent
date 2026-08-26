@@ -16,7 +16,7 @@ export interface StatusOptions {
   json?: boolean;
 }
 
-export function status(opts: StatusOptions): number {
+export async function status(opts: StatusOptions): Promise<number> {
   const baseDir = process.env.DFE_AGENT_BASE_DIR
     ?? process.env.HOME
     ?? homedir()
@@ -37,10 +37,9 @@ export function status(opts: StatusOptions): number {
     info.baseEmbeddingModel = process.env.DFE_EMBEDDING_MODEL
       ?? "paraphrase-multilingual-MiniLM-L12-v2";
 
-    // Best-effort: contar docs
+    // Best-effort: contar docs (ESM: usa dynamic import; nunca `require`)
     try {
-      // dynamic import para nao quebrar quando better-sqlite3 nao compila
-      const Database = require("better-sqlite3");
+      const { default: Database } = await import("better-sqlite3");
       const handle = new Database(dbPath, { readonly: true });
       const row = handle.prepare("SELECT COUNT(*) as c FROM documents").get() as { c: number };
       info.baseDocCount = row.c;
@@ -58,6 +57,15 @@ export function status(opts: StatusOptions): number {
   return 0;
 }
 
-if (import.meta.url === `file:///${process.argv[1]?.replace(/\\/g, "/")}`) {
-  process(status({}));
+const invokedDirectly =
+  process.argv[1]?.endsWith("status.ts")
+  || process.argv[1]?.endsWith("status.js");
+if (invokedDirectly) {
+  status({}).then(
+    (code) => process.exit(code),
+    (err) => {
+      console.error(`[dfe-agent] erro fatal: ${(err as Error).message}`);
+      process.exit(1);
+    },
+  );
 }

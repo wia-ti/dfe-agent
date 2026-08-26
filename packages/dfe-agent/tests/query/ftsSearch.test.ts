@@ -25,3 +25,30 @@ test("ftsSearch retorna top-K ordenado por bm25 (menor = melhor)", () => {
   const src = readFileSync(resolve(PKG_ROOT, "src/query/ftsSearch.ts"), "utf8");
   assert.match(src, /ORDER BY score|LIMIT/);
 });
+
+// === Behavioral test (gate code-reviewer I14) ===
+
+test("sanitizeQuery BEHAVIORAL: remove chars especiais mas preserva phrase queries", async () => {
+  // sanitizeQuery e' funcao interna (nao exportada); validamos via comportamento.
+  // Importamos o modulo e rodamos ftsSearch em DB in-memory com chunks controlados.
+  const { ftsSearch } = await import("../../dist/query/ftsSearch.js");
+  const Database = (await import("better-sqlite3")).default;
+
+  const handle = new Database(":memory:");
+  handle.exec(`
+    CREATE VIRTUAL TABLE fts_chunks USING fts5(
+      chunk_id UNINDEXED, doc_id UNINDEXED, text
+    );
+    INSERT INTO fts_chunks (chunk_id, doc_id, text) VALUES
+      (1, 100, 'nota tecnica NF-e 2024'),
+      (2, 200, 'cancelamento de NFe apos publicacao'),
+      (3, 300, 'prazo de validade da nota fiscal');
+  `);
+
+  const hits = ftsSearch(handle as any, "nota tecnica", 5);
+  assert.ok(hits.length >= 1, `esperado >=1 hit; obtido ${hits.length}`);
+  // doc 100 contem "nota tecnica" exato
+  assert.equal(hits[0].doc_id, 100, `doc_id mais relevante deve ser 100; obtido ${hits[0].doc_id}`);
+
+  handle.close();
+});

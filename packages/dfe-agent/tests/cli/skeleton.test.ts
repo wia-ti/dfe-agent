@@ -13,14 +13,18 @@ test("cli.ts existe e expoe runCli", () => {
   const src = readFileSync(cliPath, "utf8");
   assert.match(src, /export.*async function runCli/);
   assert.match(src, /parseArgs/);
-  assert.match(src, /install.*update.*query.*status/);
+  // 4 subcommands no switch statement (ordem nao importa)
+  assert.match(src, /case "install"/);
+  assert.match(src, /case "update"/);
+  assert.match(src, /case "query"/);
+  assert.match(src, /case "status"/);
 });
 
 test("commands/install.ts existe e expoe install()", () => {
   const p = resolve(PKG_ROOT, "src/commands/install.ts");
   assert.ok(existsSync(p));
   const src = readFileSync(p, "utf8");
-  assert.match(src, /export function (install);
+  assert.match(src, /export (async )?function install/);
   // Deve copiar para .opencode/
   assert.match(src, /\.opencode\/agent\/dfe-agent\.md|\.opencode\\agent\\dfe-agent\.md/);
   assert.match(src, /\.opencode\/skills\/dfe-fiscal|\.opencode\\skills\\dfe-fiscal/);

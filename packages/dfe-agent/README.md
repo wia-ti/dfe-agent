@@ -82,7 +82,7 @@ Fluxo:
 3. Download + verifica SHA-256 (gate B.3)
 4. Extrai atomicamente para `~/.dfe-agent/dfe.db`
 5. Valida `PRAGMA user_version >= 6` (gate schema)
-6. Fallback: seed bundled em `dist/seed/dfe.db.gz` se GitHub inacessivel
+6. Fallback: sem seed bundled (decisao Sprint 14 final); retorna exit 3 com mensagem clara se GitHub inacessivel. Follow-up Sprint 15+ pode adicionar seed mini.
 
 ## Custom base path
 
@@ -187,7 +187,8 @@ packages/dfe-agent/
 │   ├── cli/skeleton.test.ts
 │   ├── query/{embedder,ftsSearch,hybrid,cache,orchestrator}.test.ts
 │   └── e2e/
-└── src/seed/                 # dfe.db.gz mini (~5MB) bundled para first-run offline
+# NOTA: src/seed/ removido em Sprint 14 final (61MB gzip > target 30MB);
+# `update` retorna exit 3 com mensagem clara em rede off sem seed.
 ```
 
 ## License

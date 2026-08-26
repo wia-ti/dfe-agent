@@ -166,7 +166,3 @@ export async function update(opts: UpdateOptions): Promise<number> {
   console.info(`[dfe-agent] base atualizada: ${dbPath} (${db.length} bytes, sha=${actualSha.slice(0, 16)}...)`);
   return 0;
 }
-
-if (import.meta.url === `file:///${process.argv[1]?.replace(/\\/g, "/")}`) {
-  update({}).then((code) => process.exit(code));
-}
