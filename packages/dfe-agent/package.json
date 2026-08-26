@@ -1,5 +1,5 @@
 {
-  "name": "@dfe-agent/dfe-agent",
+  "name": "@wia-ti/dfe-agent",
   "version": "0.1.0",
   "description": "Agente opencode + base RAG com documentacao fiscal eletronica oficial brasileira (NF-e, NFC-e, CT-e, MDF-e, SPED) distribuido como pacote npm.",
   "type": "module",
@@ -46,7 +46,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/dfe-agent/DFe-Agent.git",
+    "url": "https://github.com/wia-ti/dfe-agent.git",
     "directory": "packages/dfe-agent"
   },
   "publishConfig": {

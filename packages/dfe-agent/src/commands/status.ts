@@ -25,7 +25,7 @@ export async function status(opts: StatusOptions): Promise<number> {
 
   const info: Record<string, unknown> = {
     version: VERSION,
-    packageName: "@dfe-agent/dfe-agent",
+    packageName: "@wia-ti/dfe-agent",
     basePath: dbPath,
     baseExists: existsSync(dbPath),
   };
