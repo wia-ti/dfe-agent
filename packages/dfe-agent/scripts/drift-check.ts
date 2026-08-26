@@ -77,9 +77,9 @@ export function driftCheck(): number {
   return 0;
 }
 
-const invokedDirectly =
-  process.argv[1]?.endsWith("drift-check.ts")
-  || process.argv[1]?.endsWith("drift-check.js");
+const invokedDirectly = process.argv.some(
+  (a) => a.endsWith("drift-check.ts") || a.endsWith("drift-check.js"),
+);
 if (invokedDirectly) {
   process.exit(driftCheck());
 }

@@ -15,7 +15,7 @@ export interface QueryOptions {
 }
 
 export async function query(opts: QueryOptions): Promise<number> {
-  const result = await search(opts.question, { mode: opts.mode ?? "semantic" });
+  const result = await search(opts.question, { mode: (opts.mode ?? "semantic") as any });
   console.log(JSON.stringify(result, null, 2));
   return 0;
 }

@@ -63,7 +63,11 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - name: Install Python deps
-        run: pip install -r requirements.txt
+      # Gate de regressao: pytest + plugins minimos. Py pipeline (collector,
+      # ingest, embeddings) NAO e' necessario para rodar a suite existente.
+      # Evita falha por deps pesadas (sentence-transformers, sqlite-vec)
+      # que precisam build tools nativos no CI.
+      - name: Install pytest + mocks (gate regression only)
+        run: pip install pytest==8.4.2 pytest-mock==3.15.1 pytest-cov==6.3.0
       - name: Run pytest (gate zero regressao)
         run: pytest tests/ --no-cov --no-header -q

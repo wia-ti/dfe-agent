@@ -71,9 +71,13 @@ export function sync(): number {
 }
 
 // Executa quando invocado diretamente (nao em import)
-const invokedDirectly =
-  process.argv[1]?.endsWith("sync-assets.ts")
-  || process.argv[1]?.endsWith("sync-assets.js");
+// npm run X -> argv = [node, tsx-cli, scripts/X.ts] (argv[2] endsWith X.ts)
+// node --import tsx X.ts -> argv = [node, X.ts]         (argv[1] endsWith X.ts)
+// tsx X.ts -> argv = [node, tsx-cli, X.ts]              (argv[2] endsWith X.ts)
+// .some() cobre todas as variacoes (gate CI ubuntu+windows).
+const invokedDirectly = process.argv.some(
+  (a) => a.endsWith("sync-assets.ts") || a.endsWith("sync-assets.js"),
+);
 if (invokedDirectly) {
   process.exit(sync());
 }
