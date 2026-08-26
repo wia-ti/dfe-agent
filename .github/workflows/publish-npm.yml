@@ -44,7 +44,12 @@ jobs:
 
       - name: Sync assets from DFe-Agent root
         working-directory: packages/dfe-agent
-        run: npx tsx scripts/sync-assets.ts
+        # Bypass tsx: shell cp (mesmo motivo do test-npm-package.yml)
+        run: |
+          mkdir -p dist/skill/dfe-fiscal
+          cp ../../.opencode/agent/dfe-agent.md dist/agent.md
+          cp ../../.opencode/skills/dfe-fiscal/SKILL.md dist/skill/dfe-fiscal/SKILL.md
+          echo "[sync] copied via shell (CI fallback)"
 
       - name: Drift check (gate B.1)
         working-directory: packages/dfe-agent

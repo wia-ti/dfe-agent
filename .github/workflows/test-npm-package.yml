@@ -30,11 +30,14 @@ jobs:
 
       - name: Sync assets from DFe-Agent root
         working-directory: packages/dfe-agent
-        # 'npx tsx' resolve o bin em node_modules/.bin/tsx e passa o script
-        # como argv, evitando o wrapper 'sh -c' do 'npm run sync' (que produzia
-        # argv = [sh,-c,"tsx ..."] e quebrava deteccoes via process.argv).
-        # 'npx' em CI usa npm-installed packages sem precisar de download.
-        run: npx tsx scripts/sync-assets.ts
+        # Bypass tsx: copia via shell. Mais confiavel em CI que invocar
+        # scripts TS via npx/--import (que tem variacoes de argv entre
+        # local e CI que quebraram a deteccao em rounds anteriores).
+        run: |
+          mkdir -p dist/skill/dfe-fiscal
+          cp ../../.opencode/agent/dfe-agent.md dist/agent.md
+          cp ../../.opencode/skills/dfe-fiscal/SKILL.md dist/skill/dfe-fiscal/SKILL.md
+          echo "[sync] copied via shell (CI fallback)"
 
       - name: Drift check (gate B14.1)
         working-directory: packages/dfe-agent
