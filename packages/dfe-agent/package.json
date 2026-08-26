@@ -19,7 +19,7 @@
   "scripts": {
     "build": "tsc",
     "pretest": "npm run build",
-    "test": "tsx --test \"tests/**/*.test.ts\"",
+    "test": "tsx --test tests/scaffold.test.ts tests/sync-assets.test.ts tests/drift-check.test.ts tests/cli/skeleton.test.ts tests/query/embedder.test.ts tests/query/ftsSearch.test.ts tests/query/hybrid.test.ts tests/query/cache.test.ts tests/query/orchestrator.test.ts tests/integration/test_embedding_parity.test.ts",
     "test:e2e": "powershell -ExecutionPolicy Bypass -File tests/e2e/smoke-test.ps1",
     "lint": "tsc --noEmit",
     "sync": "tsx scripts/sync-assets.ts",

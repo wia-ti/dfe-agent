@@ -1,0 +1,26 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "resolveJsonModule": true,
+    "strict": true,
+    "noImplicitAny": true,
+    "strictNullChecks": true,
+    "noUnusedLocals": false,
+    "noFallthroughCasesInSwitch": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "isolatedModules": true,
+    "allowImportingTsExtensions": true,
+    "noEmit": true,
+    "outDir": "./.claude/dist",
+    "rootDir": "./.claude",
+    "types": ["node"],
+    "lib": ["ES2022", "DOM"]
+  },
+  "include": [".claude/**/*.ts"],
+  "exclude": ["node_modules", ".claude/node_modules", ".claude/dist"]
+}

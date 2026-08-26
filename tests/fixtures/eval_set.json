@@ -1,0 +1,27 @@
+[
+  {
+    "question": "O que a NT 2019.001 altera na NF-e?",
+    "expected_doc_url": "https://www.nfe.fazenda.gov.br/portal/listaConteudo.aspx?tipoConteudo=04BIflQt1aY=",
+    "expected_keywords": ["NT 2019.001", "cancelamento"]
+  },
+  {
+    "question": "Quais os prazos de validade da NF-e emitidos em 2024?",
+    "expected_doc_url": "https://www.nfe.fazenda.gov.br/portal/listaConteudo.aspx?tipoConteudo=04BIflQt1aY=",
+    "expected_keywords": ["NF-e", "prazo"]
+  },
+  {
+    "question": "Como cancelar uma NF-e apos publicacao de NT?",
+    "expected_doc_url": "https://www.nfe.fazenda.gov.br/portal/listaConteudo.aspx?tipoConteudo=04BIflQt1aY=",
+    "expected_keywords": ["cancelar", "NF-e"]
+  },
+  {
+    "question": "Regras do CT-e em 2024",
+    "expected_doc_url": "https://www.cte.fazenda.gov.br/portal/listaConteudo.aspx",
+    "expected_keywords": ["CT-e", "2024"]
+  },
+  {
+    "question": "MDF-e procedimentos atuais",
+    "expected_doc_url": "https://dfe-portal.svrs.rs.gov.br/MDFE/Documentos",
+    "expected_keywords": ["MDF-e", "procedimento"]
+  }
+]

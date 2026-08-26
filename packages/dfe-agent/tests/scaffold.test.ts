@@ -5,7 +5,7 @@ import { execSync } from "node:child_process";
 import { resolve, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
-const PKG_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
+const PKG_ROOT = process.cwd();
 const DFE_ROOT = resolve(PKG_ROOT, "../..");
 
 test("package.json existe com name @dfe-agent/dfe-agent", () => {

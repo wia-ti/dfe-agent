@@ -1,0 +1,73 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "dfe-agent"
+version = "0.1.0"
+description = "Agente local que coleta documentacao fiscal eletronica oficial, indexa em base RAG local e responde perguntas em linguagem natural fundamentadas em notas tecnicas."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+authors = [{ name = "DFe-Agent Maintainers" }]
+
+dependencies = [
+    "pypdf==5.9.0",
+    "beautifulsoup4==4.15.0",
+    "lxml==5.4.0",
+    "requests==2.34.2",
+    "sentence-transformers==3.4.1",
+    "transformers==4.45.2",
+    "huggingface_hub==0.29.1",
+    "accelerate==1.14.0",
+    "sqlite-vec==0.1.9",
+    "pydantic==2.13.4",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest==8.4.2",
+    "pytest-mock==3.15.1",
+    "pytest-cov==6.3.0",
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["src*"]
+exclude = ["tests*", "data*", "storage*", ".opencode*"]
+
+[tool.pytest.ini_options]
+minversion = "8.0"
+testpaths = ["tests"]
+pythonpath = ["."]
+addopts = [
+    "-ra",
+    "--strict-markers",
+    "--strict-config",
+]
+markers = [
+    "integration: testes que sobem servidor fake de portal ou acessam a rede",
+    "slow: testes que baixam/carregam modelos de ML (sentence-transformers)",
+]
+filterwarnings = [
+    "error",
+    "ignore::DeprecationWarning:pypdf.*",
+]
+
+[tool.coverage.run]
+branch = true
+source = ["src"]
+omit = [
+    "*/tests/*",
+    "*/__main__.py",
+]
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = false
+fail_under = 80
+exclude_lines = [
+    "pragma: no cover",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+]

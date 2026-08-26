@@ -6,7 +6,7 @@ import { tmpdir } from "node:os";
 import { join, resolve, dirname } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
-const PKG_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
+const PKG_ROOT = process.cwd();
 const DFE_ROOT = resolve(PKG_ROOT, "../..");
 
 // Helper: importar sync-assets.mjs dinamicamente (sera gerado apos build).
