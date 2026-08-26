@@ -1,0 +1,82 @@
+name: publish-npm
+
+# Publica @dfe-agent/dfe-agent no npm registry quando tag packages-v*.*.*
+# e' pushada.
+#
+# Pre-requisitos:
+#   1. NPM_TOKEN secret em GitHub repo settings (npm automation token)
+#   2. Trust publisher configurado OU NODE_AUTH_TOKEN via secret
+#
+# @see PLAN_SPRINT14.md Task F.1
+
+on:
+  push:
+    tags: ['packages-v*.*.*']
+
+permissions:
+  contents: write
+  id-token: write  # para npm --provenance
+
+jobs:
+  test:
+    name: Test + drift-check
+    uses: ./.github/workflows/test-npm-package.yml
+    # Reutiliza o job `test` do workflow de CI matrix (matrix ubuntu+windows)
+    # Isso garante que drift-check, build, lint e test rodam antes de publish.
+
+  publish:
+    name: Publish @dfe-agent/dfe-agent to npm
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Install dependencies
+        working-directory: packages/dfe-agent
+        run: npm ci
+
+      - name: Sync assets from DFe-Agent root
+        working-directory: packages/dfe-agent
+        run: npm run sync
+
+      - name: Drift check (gate B.1)
+        working-directory: packages/dfe-agent
+        run: npm run drift-check
+
+      - name: Build TypeScript
+        working-directory: packages/dfe-agent
+        run: npm run build
+
+      - name: Verify dist/ exists
+        working-directory: packages/dfe-agent
+        run: |
+          test -f dist/cli.js || (echo "dist/cli.js missing" && exit 1)
+          test -f dist/agent.md || (echo "dist/agent.md missing" && exit 1)
+          test -f dist/skill/dfe-fiscal/SKILL.md || (echo "dist/skill/dfe-fiscal/SKILL.md missing" && exit 1)
+
+      - name: Verify dist/bin/dfe-agent.js shebang
+        working-directory: packages/dfe-agent
+        run: |
+          # Garante que o binario compilado tem shebang executavel
+          head -1 dist/bin/dfe-agent.js | grep -q "^#!/usr/bin/env node" \
+            || (echo "missing shebang in dist/bin/dfe-agent.js" && exit 1)
+
+      - name: Publish to npm (public + provenance)
+        working-directory: packages/dfe-agent
+        run: npm publish --access public --provenance
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Cleanup tag local (human action)
+        if: failure()
+        run: |
+          echo "::error::publish falhou. Investigar antes de tentar novamente."
+          echo "Tag nao foi removida para auditoria. Delete manualmente se necessario:"
+          echo "  git push origin :refs/tags/${GITHUB_REF_NAME}"
