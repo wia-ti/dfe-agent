@@ -30,10 +30,11 @@ jobs:
 
       - name: Sync assets from DFe-Agent root
         working-directory: packages/dfe-agent
-        # Bypass npm wrapper: roda tsx diretamente para argv deterministico.
-        # 'npm run sync' usa 'sh -c tsx scripts/X.ts' onde argv = [sh,-c,"tsx ..."]
-        # quebrando deteccoes via process.argv. 'node --import tsx' e' previsivel.
-        run: node --import tsx scripts/sync-assets.ts
+        # 'npx tsx' resolve o bin em node_modules/.bin/tsx e passa o script
+        # como argv, evitando o wrapper 'sh -c' do 'npm run sync' (que produzia
+        # argv = [sh,-c,"tsx ..."] e quebrava deteccoes via process.argv).
+        # 'npx' em CI usa npm-installed packages sem precisar de download.
+        run: npx tsx scripts/sync-assets.ts
 
       - name: Drift check (gate B14.1)
         working-directory: packages/dfe-agent
