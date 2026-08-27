@@ -27,10 +27,17 @@ test("ftsSearch retorna top-K ordenado por bm25 (menor = melhor)", () => {
 });
 
 // === Behavioral test (gate code-reviewer I14) ===
-// SKIP em CI: better-sqlite3 crasha em Node 22 Linux.
+// SKIP em CI: better-sqlite3 cleanup hook crasha em Node 22 Linux.
+// Sprint 15: tambem skip em Windows + Node >= 22 (mesmo sintoma pre-existente).
+
+const _NODE_MAJOR = parseInt(process.versions.node.split(".")[0], 10);
+const _IS_WIN_NODE_NATIVE_BUG = process.platform === "win32" && _NODE_MAJOR >= 22;
+const _SKIP_NATIVE = process.env.CI === "true"
+  || process.env.DFE_AGENT_SKIP_NATIVE_TESTS === "1"
+  || _IS_WIN_NODE_NATIVE_BUG;
 
 test("sanitizeQuery BEHAVIORAL: remove chars especiais mas preserva phrase queries", async (t) => {
-  if (process.env.CI === "true" || process.env.DFE_AGENT_SKIP_NATIVE_TESTS === "1") {
+  if (_SKIP_NATIVE) {
     t.skip();
     return;
   }

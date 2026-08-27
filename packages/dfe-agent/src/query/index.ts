@@ -15,9 +15,8 @@
  */
 
 import Database from "better-sqlite3";
-import { homedir, tmpdir } from "node:os";
-import { resolve } from "node:path";
 
+import { resolveBaseDir, resolveDbPath } from "../paths.js";
 import { encode, EMBEDDING_MODEL_NAME } from "./embedder.js";
 import { vectorSearch, type VectorHit } from "./vectorSearch.js";
 import { ftsSearch, type FtsHit } from "./ftsSearch.js";
@@ -38,6 +37,10 @@ import {
   type SearchMode,
 } from "./constants.js";
 
+// Re-exports para manter compat: callers antigos podem importar
+// `resolveBaseDir` de `query/index.ts` como antes. A fonte unica da
+// verdade eh `paths.ts` (gate Sprint 15 BUG-A).
+export { resolveBaseDir } from "../paths.js";
 export { NO_EVIDENCE_MESSAGE, SUPPORTED_MODES, DEFAULT_TOP_K };
 export type { SearchMode };
 
@@ -59,13 +62,10 @@ export interface SearchOptions {
 }
 
 /**
- * Resolve path da base RAG. Default: $DFE_AGENT_BASE_DIR ou ~/.dfe-agent.
+ * Re-export canônico de `resolveBaseDir` movido para `../paths.js` (gate
+ * Sprint 15 BUG-A). Mantido via `export { resolveBaseDir } from
+ * "../paths.js"` acima para nao quebrar callers externos.
  */
-export function resolveBaseDir(override?: string): string {
-  return override
-    ?? process.env.DFE_AGENT_BASE_DIR
-    ?? resolve(process.env.HOME ?? homedir() ?? tmpdir(), ".dfe-agent");
-}
 
 interface ChunkRow {
   chunk_id: number;
@@ -149,12 +149,14 @@ export async function search(
     return { answer: NO_EVIDENCE_MESSAGE, sources: [] };
   }
 
-  const dbPath = resolve(resolveBaseDir(opts.baseDirOverride), "dfe.db");
+  const dbPath = resolveDbPath(opts.baseDirOverride);
   const handle = new Database(dbPath, { readonly: true });
 
   try {
     // 1. Cache check
-    const cache = new QueryCache(handle);
+    // Bug B Sprint 15: cache abre SUA PROPRIA conexao em <baseDir>/cache.db
+    // (read-write), isolada do dfe.db (read-only).
+    const cache = new QueryCache(resolveBaseDir(opts.baseDirOverride));
     let queryVec: Float32Array | null = null;
     if (mode !== "fts") {
       queryVec = cache.get(mode, question);

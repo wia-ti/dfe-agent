@@ -29,8 +29,10 @@ import {
   readFileSync,
 } from "node:fs";
 import { resolve, dirname } from "node:path";
-import { tmpdir, homedir } from "node:os";
+import { tmpdir } from "node:os";
 import { fileURLToPath } from "node:url";
+
+import { resolveBaseDir, resolveDbPath } from "../paths.js";
 
 const PKG_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
 
@@ -42,13 +44,6 @@ const ASSET_SHA = "dfe.db.gz.sha256";
 export interface UpdateOptions {
   /** Override base path (default: $DFE_AGENT_BASE_DIR ou ~/.dfe-agent). Usado por testes. */
   baseDirOverride?: string;
-}
-
-function resolveBaseDir(): string {
-  return process.env.DFE_AGENT_BASE_DIR
-    ?? process.env.HOME
-    ?? homedir()
-    ?? tmpdir();
 }
 
 async function fetchJson(url: string, token?: string): Promise<any> {
@@ -98,7 +93,7 @@ function fallbackToSeed(dbPath: string): number {
 
 export async function update(opts: UpdateOptions): Promise<number> {
   const baseDir = opts.baseDirOverride ?? resolveBaseDir();
-  const dbPath = resolve(baseDir, "dfe.db");
+  const dbPath = resolveDbPath(opts.baseDirOverride);
 
   mkdirSync(baseDir, { recursive: true });
 

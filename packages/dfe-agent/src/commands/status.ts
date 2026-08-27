@@ -6,8 +6,9 @@
 
 import { existsSync, statSync } from "node:fs";
 import { resolve, dirname } from "node:path";
-import { homedir, tmpdir } from "node:os";
 import { fileURLToPath } from "node:url";
+
+import { resolveDbPath } from "../paths.js";
 
 const PKG_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
 import { VERSION } from "../index.js";
@@ -17,11 +18,7 @@ export interface StatusOptions {
 }
 
 export async function status(opts: StatusOptions): Promise<number> {
-  const baseDir = process.env.DFE_AGENT_BASE_DIR
-    ?? process.env.HOME
-    ?? homedir()
-    ?? tmpdir();
-  const dbPath = resolve(baseDir, "dfe.db");
+  const dbPath = resolveDbPath();
 
   const info: Record<string, unknown> = {
     version: VERSION,
