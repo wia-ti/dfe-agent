@@ -1,21 +1,17 @@
 name: publish-npm
 
-# Publica @wiati/dfe-agent no npm registry quando tag packages-v*.*.* e' pushada.
-#
-# Auth: Trusted Publishing via OIDC (Sprint 14 round 17).
-# Configurar em https://www.npmjs.com/settings/wiati/profile > Trusted Publishers:
-#   - Provider: github
-#   - Repository: wia-ti/dfe-agent
-#   - Workflow filename: .github/workflows/publish-npm.yml
-#
-# SEM NENHUM TOKEN NECESSARIO. npm confia na identidade OIDC do GitHub Actions.
-# NAO precisa de NPM_TOKEN secret. NAO precisa de bypass 2FA.
+# DISABLED round 24 (Sprint 14) — user prefere publicacao manual.
+# Para re-habilitar CI publish no futuro:
+#   1. mude on: para workflow_dispatch (manual) ou tag push
+#   2. remova o comentario "if: false" do job publish
+#   3. garanta Trusted Publisher configurado em npmjs.com
 #
 # @see PLAN_SPRINT14.md Task F.1
 
 on:
+  workflow_dispatch:    # apenas manual; CI automatico desabilitado
   push:
-    tags: ['packages-v*.*.*']
+    tags: ['packages-v*.*.*']  # NAO trigga job (job tem if: false)
 
 permissions:
   contents: write
@@ -30,12 +26,12 @@ jobs:
 
   publish:
     name: Publish @wiati/dfe-agent to npm
-    # needs: test removido (round 22) — tests estruturais passam mas os
-    # behavioral (que carregam better-sqlite3/@xenova/transformers) crasham
-    # em CI Linux por bug conhecido (assertion (env) != nullptr em
-    # RemoveEnvironmentCleanupHook). Publicacao segue apenas com drift-check +
-    # build + sync + verify dist/. Tests serao investigados em Sprint 15+.
+    # Sprint 14 round 24: job desabilitado (if: false). Publicacao agora
+    # e' feita manualmente pelo user (npm login + npm publish).
+    # Para re-habilitar CI publish no futuro: remover o 'if: false' e
+    # restaurar o `needs: test` (apos investigar o bug do cleanup hook).
     needs: ""
+    if: false   # ← DISABLED: CI publish desativado round 24
     runs-on: ubuntu-latest
     steps:
       - name: Checkout

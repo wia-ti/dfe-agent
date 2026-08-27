@@ -1,5 +1,5 @@
 /**
- * cli.ts — entry point CLI para @dfe-agent/dfe-agent.
+ * cli.ts — entry point CLI para @wiati/dfe-agent.
  *
  * Subcommands:
  *   install   copia agent + skill para .opencode/ do projeto

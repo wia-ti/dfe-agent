@@ -1,4 +1,4 @@
-# smoke-test.ps1 - E2E do @dfe-agent/dfe-agent em scratch project (Sprint 14 Task F.2).
+# smoke-test.ps1 - E2E do @wiati/dfe-agent em scratch project (Sprint 14 Task F.2).
 #
 # Valida o fluxo canonico de consumo:
 #   1. scratch project (sem Python, sem assets pre-instalados)
@@ -61,7 +61,7 @@ try {
     Write-Host "[e2e] status.packageName: $($status.packageName)"
     Write-Host "[e2e] status.basePath: $($status.basePath)"
     if (-not $status.version) { throw "FAIL: version ausente" }
-    if ($status.packageName -ne "@dfe-agent/dfe-agent") { throw "FAIL: packageName errado" }
+    if ($status.packageName -ne "@wiati/dfe-agent") { throw "FAIL: packageName errado" }
 
     # Limpa tarball
     Remove-Item -LiteralPath $TARBALL_PATH -Force -ErrorAction SilentlyContinue

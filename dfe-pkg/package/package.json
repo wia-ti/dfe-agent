@@ -1,6 +1,6 @@
 {
   "name": "@wiati/dfe-agent",
-  "version": "0.1.2",
+  "version": "0.1.1",
   "description": "Agente opencode + base RAG com documentacao fiscal eletronica oficial brasileira (NF-e, NFC-e, CT-e, MDF-e, SPED) distribuido como pacote npm.",
   "type": "module",
   "main": "./dist/index.js",

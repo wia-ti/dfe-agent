@@ -1,4 +1,4 @@
-// @dfe-agent/dfe-agent — entry point
+// @wiati/dfe-agent — entry point
 // Documentado em PLAN_SPRINT14.md Task A.1 (Sprint 14)
 
 export const VERSION = "0.1.0";

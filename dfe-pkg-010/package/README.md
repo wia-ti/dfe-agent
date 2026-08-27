@@ -1,4 +1,4 @@
-# @wiati/dfe-agent
+# @dfe-agent/dfe-agent
 
 > **Status: MVP em desenvolvimento (Sprint 14)** — publicacao inicial prevista apos Fase F.
 
@@ -6,7 +6,7 @@ Agente opencode + base RAG com documentacao fiscal eletronica oficial brasileira
 
 ## What is this?
 
-`@wiati/dfe-agent` e' o agente `dfe-agent` empacotado como pacote npm. Ele expoe:
+`@dfe-agent/dfe-agent` e' o agente `dfe-agent` empacotado como pacote npm. Ele expoe:
 
 - **Agent definition** (`dist/agent.md`) — system prompt que orienta o LLM a:
   - usar a skill `dfe-fiscal`
@@ -30,7 +30,7 @@ Agente opencode + base RAG com documentacao fiscal eletronica oficial brasileira
 ## Install
 
 ```bash
-npm install @wiati/dfe-agent
+npm install @dfe-agent/dfe-agent
 npx dfe-agent install   # copia agent + skill para .opencode/ (opt-in, nao automatico)
 npx dfe-agent update    # baixa base RAG (~30MB)
 ```

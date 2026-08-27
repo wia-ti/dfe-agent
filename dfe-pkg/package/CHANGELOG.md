@@ -5,7 +5,7 @@ Todas as mudancas notaveis neste projeto sao documentadas aqui.
 ## 0.1.0 — 2026-XX-XX (Sprint 14 MVP, em desenvolvimento)
 
 ### Added
-- Pacote npm `@wiati/dfe-agent` com agent + skill + CLI Node
+- Pacote npm `@dfe-agent/dfe-agent` com agent + skill + CLI Node
 - Subcommands `install`, `update`, `query`, `status`
 - Base RAG via GitHub Releases (download obrigatorio no primeiro `update`; sem seed bundled para manter npm tarball <50MB)
 - Query engine Node port de `src/query/query_engine.py` com paridade validada
