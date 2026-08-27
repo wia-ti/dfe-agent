@@ -8,14 +8,14 @@ import { fileURLToPath } from "node:url";
 const PKG_ROOT = process.cwd();
 const DFE_ROOT = resolve(PKG_ROOT, "../..");
 
-test("package.json existe com name @wia-ti/dfe-agent (Sprint 14 round 14)", () => {
+test("package.json existe com name @wiati/dfe-agent (Sprint 14 round 16)", () => {
   const pkgPath = resolve(PKG_ROOT, "package.json");
   assert.ok(existsSync(pkgPath), `package.json nao encontrado em ${pkgPath}`);
   const pkg = JSON.parse(readFileSync(pkgPath, "utf8"));
-  // Sprint 14 round 14: scope mudou de @dfe-agent/ para @wia-ti/
-  // (org @dfe-agent nao existe no npmjs.com; @wia-ti/ e' o user do
-  // publisher que tem permissao de publish).
-  assert.equal(pkg.name, "@wia-ti/dfe-agent");
+  // Sprint 14 round 16: scope @wiati/ (sem hifen) - match EXATO com
+  // username npmjs.com do publisher. Token do user 'wiati' (sem hifen)
+  // NAO publica em @wia-ti/ (com hifen) - sao usernames diferentes.
+  assert.equal(pkg.name, "@wiati/dfe-agent");
 });
 
 test("package.json tem type module", () => {
