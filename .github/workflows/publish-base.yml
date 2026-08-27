@@ -1,7 +1,12 @@
 name: publish-base
 
-# Publica dfe.db.gz + dfe.db.gz.sha256 como assets do GitHub Release
-# quando uma tag v*.*.* e' pushada no DFe-Agent root.
+# Publica storage/dfe.db.gz como asset do GitHub Release quando tag v*.*.*
+# e' pushada. Consumidores (npm install @wiati/dfe-agent + npx dfe-agent update)
+# baixam este asset do release.
+#
+# Round 18: workflow NAO roda mais o collector Python (que estava travando
+# em 'Collect from official portals' no CI Linux). Usa o arquivo pre-buildado
+# storage/dfe.db.gz (61 MB) ja' commitado no repo.
 #
 # @see PLAN_SPRINT14.md Task D.1
 
@@ -17,55 +22,42 @@ jobs:
     name: Build + publish dfe.db.gz
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: Set up job
         uses: actions/checkout@v4
 
-      - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-          cache: 'pip'
-
-      - name: Install Python deps
-        run: pip install -r requirements.txt
-
-      - name: Apply migrations
-        run: python -m src.ragctl migrate
-
-      - name: Collect from official portals
-        run: python -m src.collector --once
-
-      - name: Ingest documents (chunking estrutural)
-        run: python -m src.indexer.ingest --chunker=structural
-
-      - name: Verify base integrity
+      - name: Verify base file exists
         run: |
-          python -c "
-          import sqlite3
-          con = sqlite3.connect('storage/dfe.db')
-          uv = con.execute('PRAGMA user_version').fetchone()[0]
-          count = con.execute('SELECT COUNT(*) FROM documents').fetchone()[0]
-          print(f'schema v{uv}, {count} documents')
-          assert uv >= 6, f'schema too old: {uv}'
-          assert count > 0, 'no documents ingested'
-          con.close()
-          "
+          test -f storage/dfe.db.gz || (echo "storage/dfe.db.gz missing" && exit 1)
+          test -f storage/dfe.db.gz.sha256 || (echo "storage/dfe.db.gz.sha256 missing" && exit 1)
+          echo "OK: pre-buildada base found"
+          ls -lh storage/dfe.db.gz storage/dfe.db.gz.sha256
 
-      - name: Gzip base
-        run: gzip -c storage/dfe.db > dfe.db.gz
+      - name: Compute SHA-256 from file
+        id: sha
+        run: |
+          echo "sha256=$(sha256sum storage/dfe.db.gz | awk '{print $1}')" >> "$GITHUB_OUTPUT"
+          echo "expected=$(cat storage/dfe.db.gz.sha256)" >> "$GITHUB_OUTPUT"
+          cat "$GITHUB_OUTPUT"
 
-      - name: SHA-256 checksum
-        run: sha256sum dfe.db.gz | awk '{print $1}' > dfe.db.gz.sha256
+      - name: Verify SHA-256 (gate B.3)
+        run: |
+          if [ "${{ steps.sha.outputs.sha256 }}" != "${{ steps.sha.outputs.expected }}" ]; then
+            echo "ERROR: SHA mismatch"
+            echo "  expected: ${{ steps.sha.outputs.expected }}"
+            echo "  actual:   ${{ steps.sha.outputs.sha256 }}"
+            exit 1
+          fi
+          echo "SHA-256 OK: ${{ steps.sha.outputs.sha256 }}"
 
       - name: Upload to GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            dfe.db.gz
-            dfe.db.gz.sha256
+            storage/dfe.db.gz
+            storage/dfe.db.gz.sha256
           fail_on_unmatched_files: true
           generate_release_notes: true
 
-      - name: Cleanup artifacts
+      - name: Cleanup local artifacts
         if: always()
-        run: rm -f dfe.db.gz dfe.db.gz.sha256
+        run: rm -f storage/dfe.db.gz.tmp storage/dfe.db.gz.sha256.tmp
