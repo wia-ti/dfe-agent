@@ -1,17 +1,17 @@
-# PLAN.md
+﻿# PLAN.md
 
-## Sprint 1 — DFe-Agent varre portais oficiais, indexa documentos em base RAG local e responde perguntas citando fonte em fluxo E2E
+## Sprint 1 ÔÇö DFe-Agent varre portais oficiais, indexa documentos em base RAG local e responde perguntas citando fonte em fluxo E2E
 
-**Critério de conclusão (1 frase verificável):** `pytest tests/` retorna exit code 0 **e** `python -m src.collector --once && python -m src.indexer.ingest && python -m src.query "O que e a NF-e?"` produz JSON contendo `answer` e `sources` com URL presente na tabela `documents`.
+**Crit├®rio de conclus├úo (1 frase verific├ível):** `pytest tests/` retorna exit code 0 **e** `python -m src.collector --once && python -m src.indexer.ingest && python -m src.query "O que e a NF-e?"` produz JSON contendo `answer` e `sources` com URL presente na tabela `documents`.
 
 ---
 
-### Fase 1 — Fundacao do projeto e utilitarios base
+### Fase 1 ÔÇö Fundacao do projeto e utilitarios base
 > Dependencias: nenhuma
 > Paralelismo: Task 1.1 e Task 1.2 rodam em paralelo
 > Criterio de conclusao: `python -c "import src.collector, src.parser, src.indexer, src.query, src.db, src.utils"` retorna exit code 0
 
-#### Task 1.1 — Scaffold Python, dependencias e estrutura de diretorios
+#### Task 1.1 ÔÇö Scaffold Python, dependencias e estrutura de diretorios
 - Agent: Backend Engineer
 - Input: diretorio do projeto vazio (apenas SPEC.md e AGENTS.md existentes)
 - Output:
@@ -26,7 +26,7 @@
   - [ ] `pytest --collect-only -q` descobre 0 testes e retorna exit code 0
   - [ ] Diretorios `storage/` e `data/` estao listados em `.gitignore`
 
-#### Task 1.2 — Utilitarios compartilhados: logging, retry com backoff, throttler
+#### Task 1.2 ÔÇö Utilitarios compartilhados: logging, retry com backoff, throttler
 - Agent: Backend Engineer
 - Input: Task 1.1 completa
 - Output:
@@ -41,12 +41,12 @@
 
 ---
 
-### Fase 2 — Storage SQLite: schema relacional e base vetorial
+### Fase 2 ÔÇö Storage SQLite: schema relacional e base vetorial
 > Dependencias: Fase 1
 > Paralelismo: Task 2.1 e Task 2.2 rodam em paralelo
 > Criterio de conclusao: `pytest tests/unit/db/` retorna exit code 0 com 6+ testes passando
 
-#### Task 2.1 — DAO relacional: tabela `documents` e controle de ingestao
+#### Task 2.1 ÔÇö DAO relacional: tabela `documents` e controle de ingestao
 - Agent: Backend Engineer
 - Input: Task 1.1 completa
 - Output:
@@ -59,7 +59,7 @@
   - [x] `upsert_document` com `DocumentRecord(url="u", ...)` retorna `id >= 1`; `get_by_url("u")` retorna registro equivalente; `get_by_url("inexistente")` retorna `None`
   - [x] `mark_ingested(id)` seguido de `list_pending()` nao contem esse id; `status` no banco vira `'ingerido'` e `ingested_at` fica nao-nulo
 
-#### Task 2.2 — DAO vetorial: chunks + embeddings com `sqlite-vec`
+#### Task 2.2 ÔÇö DAO vetorial: chunks + embeddings com `sqlite-vec`
 - Agent: Backend Engineer
 - Input: Task 1.1 completa (decisao: extensao `sqlite-vec`)
 - Output:
@@ -75,12 +75,12 @@
 
 ---
 
-### Fase 3 — Coletor/Scraper com guardrail de dominio e throttling
+### Fase 3 ÔÇö Coletor/Scraper com guardrail de dominio e throttling
 > Dependencias: Fase 2
 > Paralelismo: Task 3.1 e Task 3.2 rodam em paralelo (Task 3.2 integra 3.1)
 > Criterio de conclusao: `pytest tests/unit/collector/` retorna exit code 0 e `python -m src.collector --once --dry-run` lista URLs validas sem fazer download
 
-#### Task 3.1 — Hook de guardrail de dominio + lista permitida
+#### Task 3.1 ÔÇö Hook de guardrail de dominio + lista permitida
 - Agent: Backend Engineer
 - Input: Task 1.1 completa
 - Output:
@@ -94,11 +94,11 @@
   - [x] `validate_url("ftp://nfe.fazenda.gov.br/x", ALLOWED_DOMAINS)` retorna `False` (scheme nao-http)
   - [x] Invocacao `python .opencode/hooks/domain_guard.py https://evil.com/x` retorna exit code 2
 
-#### Task 3.2 — Coletor: descoberta por portal + download com throttling
+#### Task 3.2 ÔÇö Coletor: descoberta por portal + download com throttling
 - Agent: Backend Engineer
 - Input: Task 2.1 completa, Task 1.2 completa, Task 3.1 completa
 - Output:
-  - `src/collector/portal_index.py` com `def discover_documents(source: str, throttler: Throttler, http_session: requests.Session | None = None) -> list[dict]` retornando lista de `{url, title, doc_type, published_at}` por portal (`source` ∈ {"nfe", "nfce", "cte", "mdfe", "sped", "confaz"}); cada chamada faz `throttler.wait()` antes do `GET`
+  - `src/collector/portal_index.py` com `def discover_documents(source: str, throttler: Throttler, http_session: requests.Session | None = None) -> list[dict]` retornando lista de `{url, title, doc_type, published_at}` por portal (`source` Ôêê {"nfe", "nfce", "cte", "mdfe", "sped", "confaz"}); cada chamada faz `throttler.wait()` antes do `GET`
   - `src/collector/downloader.py` com:
     - `class DocumentCollector` com `__init__(self, storage: SqliteStorage, throttler: Throttler, data_dir: Path, allowed_domains: list[str] = ALLOWED_DOMAINS)`
     - `def discover_and_register(self) -> int` (para cada `source` em lista interna, chama `discover_documents`, valida cada URL via `validate_url`, faz `upsert_document` com `status="nao_ingerido"` se URL nao existe; retorna quantidade registrada)
@@ -111,12 +111,12 @@
 
 ---
 
-### Fase 4 — Parser/Extrator de PDF e HTML
+### Fase 4 ÔÇö Parser/Extrator de PDF e HTML
 > Dependencias: Fase 1
 > Paralelismo: Task 4.1 e Task 4.2 rodam em paralelo
 > Criterio de conclusao: `pytest tests/unit/parser/` retorna exit code 0 com 6+ testes passando (cobertura 100% em `src/parser/`)
 
-#### Task 4.1 — Parser de PDF preservando encoding e acentos
+#### Task 4.1 ÔÇö Parser de PDF preservando encoding e acentos
 - Agent: Backend Engineer
 - Input: Task 1.1 completa
 - Output:
@@ -124,13 +124,13 @@
   - `src/parser/pdf_parser.py` com:
     - `def extract_text_from_pdf(pdf_path: Path) -> str` (abre com `pypdf.PdfReader`, concatena `page.extract_text()` de cada pagina com `\n`, normaliza multiplos `\n\n` consecutivos em um unico, remove caracteres `\x00`; levanta `PdfParseError` se `pypdf.errors.PdfReadError` ocorrer)
     - `def extract_text_from_bytes(data: bytes) -> str` (wrapper usando `io.BytesIO`)
-  - `tests/fixtures/sample_nt.pdf` — fixture PDF real (gerado em conftest ou commitado) contendo string "Nota Tecnica 2019.001 - NF-e" com acentos
+  - `tests/fixtures/sample_nt.pdf` ÔÇö fixture PDF real (gerado em conftest ou commitado) contendo string "Nota Tecnica 2019.001 - NF-e" com acentos
 - Testes criticos:
   - [x] `extract_text_from_pdf(tests/fixtures/sample_nt.pdf)` retorna string contendo literalmente `"Nota Tecnica 2019.001"` e `"NF-e"` com todos os acentos preservados
   - [x] `extract_text_from_bytes(b"%PDF-corrompido")` levanta `PdfParseError`
   - [x] Saida de `extract_text_from_pdf` nao contem nenhum caractere `\x00` (assert `"\\x00" not in result`)
 
-#### Task 4.2 — Parser de HTML de paginas de legislacao
+#### Task 4.2 ÔÇö Parser de HTML de paginas de legislacao
 - Agent: Backend Engineer
 - Input: Task 1.1 completa
 - Output:
@@ -145,12 +145,12 @@
 
 ---
 
-### Fase 5 — Indexador RAG (chunking, embeddings, persistencia)
+### Fase 5 ÔÇö Indexador RAG (chunking, embeddings, persistencia)
 > Dependencias: Fase 2 (schemas) e Fase 4 (parsers)
 > Paralelismo: Task 5.1 e Task 5.2 rodam em paralelo
 > Criterio de conclusao: `pytest tests/unit/indexer/` retorna exit code 0 (cobertura 100% em `src/indexer/`)
 
-#### Task 5.1 — Chunker por paragrafos + EmbeddingProvider multilingue
+#### Task 5.1 ÔÇö Chunker por paragrafos + EmbeddingProvider multilingue
 - Agent: ML Engineer
 - Input: Task 1.1 completa
 - Output:
@@ -164,7 +164,7 @@
   - [x] `EmbeddingProvider().embed(["NF-e"])` retorna lista com 1 elemento de comprimento `384` e `norma L2 > 0` (verificado com `math.sqrt(sum(x*x for x in v))`)
   - [x] `chunk_text("")` retorna `[]`; `chunk_text("abc", chunk_size=800)` retorna `["abc"]`
 
-#### Task 5.2 — RagIndexer com idempotencia por hash e ingestao paralela-safe
+#### Task 5.2 ÔÇö RagIndexer com idempotencia por hash e ingestao paralela-safe
 - Agent: ML Engineer
 - Input: Task 2.1 completa, Task 2.2 completa, Task 4.1 completa, Task 5.1 completa
 - Output:
@@ -180,12 +180,12 @@
 
 ---
 
-### Fase 6 — Camada de Consulta (busca semantica + montagem de contexto)
+### Fase 6 ÔÇö Camada de Consulta (busca semantica + montagem de contexto)
 > Dependencias: Fase 5
 > Paralelismo: Task 6.1 e Task 6.2 rodam em paralelo
 > Criterio de conclusao: `pytest tests/unit/query/` retorna exit code 0 com 6+ testes passando
 
-#### Task 6.1 — QueryEngine: busca vetorial, ranking e filtro de relevancia
+#### Task 6.1 ÔÇö QueryEngine: busca vetorial, ranking e filtro de relevancia
 - Agent: Backend Engineer
 - Input: Task 5.2 completa
 - Output:
@@ -198,7 +198,7 @@
   - [x] Quando `vector_store.search` retorna `[]`, `QueryEngine.search` retorna `[]` sem levantar excecao
   - [x] `QueryEngine.search("foo")` chama `embedder.embed` exatamente uma vez com lista contendo apenas `"foo"` (verificado via `pytest-mock.spy`)
 
-#### Task 6.2 — ContextBuilder, guardrail de veracidade e CLI de consulta
+#### Task 6.2 ÔÇö ContextBuilder, guardrail de veracidade e CLI de consulta
 - Agent: Backend Engineer
 - Input: Task 6.1 completa
 - Output:
@@ -215,12 +215,12 @@
 
 ---
 
-### Fase 7 — Configuracao opencode: agente, skill, rules
+### Fase 7 ÔÇö Configuracao opencode: agente, skill, rules
 > Dependencias: Fase 3 (collector existe) e Fase 6 (query existe)
 > Paralelismo: Task 7.1, Task 7.2 e Task 7.3 rodam em paralelo (cada uma escreve em arquivo distinto)
 > Criterio de conclusao: `opencode agent list` lista `dfe-agent` e `opencode skill list` lista `dfe-fiscal` sem erro
 
-#### Task 7.1 — Definicao do agente principal `dfe-agent`
+#### Task 7.1 ÔÇö Definicao do agente principal `dfe-agent`
 - Agent: Prompt Engineer
 - Input: Task 1.1 completa
 - Output:
@@ -237,7 +237,7 @@
   - [x] Corpo contem as strings literais `"dfe-fiscal"`, `"Nao encontrei base para responder"`, `"Fontes:"` e `"python -m src.collector --once"`
   - [x] `python -c "import yaml; yaml.safe_load(open('.opencode/agent/dfe-agent.md').read().split('---')[1])"` nao levanta excecao (YAML valido)
 
-#### Task 7.2 — Skill dedicada `dfe-fiscal` documentando comandos do dominio
+#### Task 7.2 ÔÇö Skill dedicada `dfe-fiscal` documentando comandos do dominio
 - Agent: Prompt Engineer
 - Input: Task 3.2 completa, Task 5.2 completa, Task 6.2 completa
 - Output:
@@ -254,13 +254,13 @@
   - [x] Corpo cita literalmente as classes `DocumentCollector`, `RagIndexer`, `QueryEngine` e os modulos `src.collector`, `src.indexer.ingest`, `src.query`
   - [x] Cada comando documentado existe como entry-point: `python -c "import src.collector.__main__"`, `python -c "import src.indexer.ingest"`, `python -c "import src.query.__main__"` retornam exit code 0
 
-#### Task 7.3 — Rules do agente (5 regras numeradas)
+#### Task 7.3 ÔÇö Rules do agente (5 regras numeradas)
 - Agent: Prompt Engineer
 - Input: Task 1.1 completa
 - Output:
   - `.opencode/rules/dfe-rules.md` com lista ordenada Markdown de 5 itens, cada um em uma frase imperativa em negrito (`**...**`):
-    1. **Nunca inventar informacao** — toda afirmacao deve citar fonte da base RAG.
-    2. **Nunca acessar dominios fora de `ALLOWED_DOMAINS`** — enforced por hook `domain_guard`.
+    1. **Nunca inventar informacao** ÔÇö toda afirmacao deve citar fonte da base RAG.
+    2. **Nunca acessar dominios fora de `ALLOWED_DOMAINS`** ÔÇö enforced por hook `domain_guard`.
     3. **Sempre executar `python -m src.collector --once`** antes de formular qualquer resposta.
     4. **Toda resposta termina com bloco `Fontes:`** contendo `URL - Titulo do documento`.
     5. **Quando `has_sufficient_evidence` retornar `False`**, responder literalmente `Nao encontrei base para responder`.
@@ -271,14 +271,14 @@
 
 ---
 
-### Fase 8 — Testes de integracao E2E e validacao dos guardrails
+### Fase 8 ÔÇö Testes de integracao E2E e validacao dos guardrails
 > Dependencias: Fase 7
-> Paralelismo: nenhuma (fase sequencial — compartilham fixtures e estado)
+> Paralelismo: nenhuma (fase sequencial ÔÇö compartilham fixtures e estado)
 > Criterio de conclusao: `pytest tests/` retorna exit code 0 **e** `pytest --cov=src --cov-report=term --cov-fail-under=80` passa
 
-#### Task 8.1 — Fluxo E2E: varredura → ingestao → consulta → resposta com fonte
+#### Task 8.1 ÔÇö Fluxo E2E: varredura ÔåÆ ingestao ÔåÆ consulta ÔåÆ resposta com fonte
 - Agent: QA Engineer
-- Input: Fases 1–7 completas
+- Input: Fases 1ÔÇô7 completas
 - Output:
   - `tests/integration/conftest.py` com fixtures: `fake_portal_server` (sobe `http.server` em thread daemon na porta aleatoria, servindo `tests/fixtures/fake_portal/` contendo `nfe/nota_tecnica_2019_001.pdf` e `confaz/convenio_123_2024.html`) e `temp_storage` (cria `tmp_path/storage/test.db` e `tmp_path/data/`)
   - `tests/integration/test_e2e_pipeline.py` com 2 testes:
@@ -289,7 +289,7 @@
   - [x] Ao final de `test_e2e_collect_index_answer`, `SELECT COUNT(*) FROM documents WHERE status='ingerido' >= 1` e `SELECT COUNT(*) FROM vec_chunks >= 1`
   - [x] `subprocess.run([sys.executable, "-m", "src.query", "xyz"], capture_output=True)` produz stdout contendo `"Nao encontrei base para responder"`
 
-#### Task 8.2 — Validacao integrada dos guardrails criticos
+#### Task 8.2 ÔÇö Validacao integrada dos guardrails criticos
 - Agent: QA Engineer
 - Input: Task 8.1 completa
 - Output:
@@ -301,7 +301,7 @@
 - Testes criticos:
   - [x] `pytest tests/integration/test_guardrails.py` retorna exit code 0 nos 4 testes
   - [x] `pytest --cov=src --cov-report=term-missing --cov-fail-under=80` passa com cobertura 100% em `src/parser/` e `src/indexer/`
-  - [x] `pytest tests/` (suíte completa: unit + integration) retorna exit code 0
+  - [x] `pytest tests/` (su├¡te completa: unit + integration) retorna exit code 0
 
 ---
 
@@ -311,13 +311,13 @@
 
 | Fase | Tasks em paralelo | Pico de paralelismo |
 |------|-------------------|---------------------|
-| Fase 1 | 1.1 ‖ 1.2 | 2 |
-| Fase 2 | 2.1 ‖ 2.2 | 2 |
-| Fase 3 | 3.1 ‖ 3.2 | 2 |
-| Fase 4 | 4.1 ‖ 4.2 | 2 |
-| Fase 5 | 5.1 ‖ 5.2 | 2 |
-| Fase 6 | 6.1 ‖ 6.2 | 2 |
-| Fase 7 | 7.1 ‖ 7.2 ‖ 7.3 | **3** |
+| Fase 1 | 1.1 ÔÇû 1.2 | 2 |
+| Fase 2 | 2.1 ÔÇû 2.2 | 2 |
+| Fase 3 | 3.1 ÔÇû 3.2 | 2 |
+| Fase 4 | 4.1 ÔÇû 4.2 | 2 |
+| Fase 5 | 5.1 ÔÇû 5.2 | 2 |
+| Fase 6 | 6.1 ÔÇû 6.2 | 2 |
+| Fase 7 | 7.1 ÔÇû 7.2 ÔÇû 7.3 | **3** |
 | Fase 8 | (sequencial) | 1 |
 
 **Observacao:** alem do paralelismo intra-fase, Fases 3 e 4 podem rodar em paralelo entre si (Fase 4 depende apenas de Fase 1). Pico absoluto de paralelismo no projeto: **3 agents simultaneos** (Fase 7).
@@ -326,8 +326,122 @@
 
 - **Total de tasks:** 17 (2 + 2 + 2 + 2 + 2 + 2 + 3 + 2)
 - **Papeis de agent necessarios:** 4 distintos
-  - **Backend Engineer** — Tasks 1.1, 1.2, 2.1, 2.2, 3.1, 3.2, 4.1, 4.2, 6.1, 6.2 (10 tasks)
-  - **ML Engineer** — Tasks 5.1, 5.2 (2 tasks)
-  - **Prompt Engineer** — Tasks 7.1, 7.2, 7.3 (3 tasks)
-  - **QA Engineer** — Tasks 8.1, 8.2 (2 tasks)
+  - **Backend Engineer** ÔÇö Tasks 1.1, 1.2, 2.1, 2.2, 3.1, 3.2, 4.1, 4.2, 6.1, 6.2 (10 tasks)
+  - **ML Engineer** ÔÇö Tasks 5.1, 5.2 (2 tasks)
+  - **Prompt Engineer** ÔÇö Tasks 7.1, 7.2, 7.3 (3 tasks)
+  - **QA Engineer** ÔÇö Tasks 8.1, 8.2 (2 tasks)
 - **Menor pool para executar em paralelismo maximo:** 3 agents (qualquer combinacao Backend+ML+Prompt). Para a Fase 8 (sequencial), 1 agent QA basta.
+
+## Pendencias Sprint 14 â†’ proxima sessao
+
+Esta secao documenta tudo que ficou pendente APOS a publicacao 0.1.x do pacote
+`@wiati/dfe-agent` no npm registry (Sprint 14). Use-a como ponto de partida
+na proxima sessao para retomar o desenvolvimento sem perder contexto.
+
+### Estado atual (2026-08-27)
+
+| Item | Status | Localizacao |
+|---|---|---|
+| Publicacao npm | âœ… 0.1.0 (CI, bug GH_REPO), 0.1.1 (manual) | https://www.npmjs.com/package/@wiati/dfe-agent |
+| GitHub Release v1.2.3 | âœ… com `dfe.db.gz` (61MB) + SHA256 | https://github.com/wia-ti/dfe-agent/releases/tag/v1.2.3 |
+| CI matrix (ubuntu 20+22) | âœ… build + lint + structural tests | .github/workflows/test-npm-package.yml |
+| CI publish (npm) | DISABLED `if: false` (user prefere manual) | .github/workflows/publish-npm.yml |
+| Setup funcional local | âœ… pytest + npm install + build OK | este diretorio |
+| Agents + skills + hooks + rules | âœ… 3 agents, 1 skill, 5 hooks, 5 rules | .opencode/ |
+
+### Pendencias para Sprint 15+
+
+#### CI / Publicacao
+
+1. **Re-habilitar Trusted Publishing** com `--provenance`
+   - Re-add `provenance: true` em `packages/dfe-agent/package.json`
+   - Re-add `--provenance` flag em `publish-npm.yml`
+   - Re-add `id-token: write` em `permissions` do job publish
+   - Re-add `if: false` no job publish â†’ remover
+   - Re-add `needs: test` (test job precisa passar)
+   - Documentar em comment como configurar Trusted Publisher em npmjs.com (provider=github, repo=wia-ti/dfe-agent, workflow=publish-npm.yml, env=vazio)
+
+2. **Investigar falha do test step em CI Linux + Node 22**
+   - Symptom: `test (unit + integration)` falha em 2-3s com assertion `(env) != nullptr`
+   - Causa provavel: better-sqlite3 / @xenova/transformers cleanup hook em Node 22 Linux
+   - Workaround atual: `|| true` no test step (perde gate de qualidade)
+   - Investigar: adicionar `process.removeAllListeners('exit')` antes de tests, ou upgrade para Node 24
+
+3. **Re-habilitar pytest regression no CI**
+   - Job `pytest-regression` esta com `if: false` desde round 12
+   - Voltar a `if: ${{ github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v') }}`
+   - Investigar qual teste especifico quebra (suspeita: testes de DB com `better-sqlite3.connect`)
+
+#### Codigo / Docs
+
+4. **README do consumidor** â€” atualizar `packages/dfe-agent/README.md`:
+   - Trocar referencias `@dfe-agent/dfe-agent` â†’ `@wiati/dfe-agent` (parcialmente feito round 25)
+   - Adicionar secao "Troubleshooting" com 2FA, trusted publisher, GH_REPO override env var
+   - Adicionar secao "How it works" com diagrama do fluxo install + update + query
+
+5. **Testes comportamentais em CI** â€” investigar e corrigir:
+   - `cache.test.ts BEHAVIORAL` (better-sqlite3) â€” funciona local, falha CI
+   - `ftsSearch.test.ts BEHAVIORAL` (FTS5 in-memory) â€” mesma suspeita
+   - `hybrid.test.ts BEHAVIORAL` (RRF math) â€” mesma suspeita
+   - `test_embedding_parity.test.ts` (model download) â€” pode falhar em CI por timeout de rede
+   - Fix: ou mockear native modules OU upgrade Node para 24 LTS no CI
+
+6. **CHANGELOG.md** â€” adicionar entrada 0.1.0 â†’ 0.1.2 com fix de descricao:
+   - README/CHANGELOG/cli/index/smoke-test: corrigir referencias
+     `@dfe-agent/dfe-agent` (antigo scope inexistente) â†’ `@wiati/dfe-agent`
+   - `update.ts` GH_REPO default: `dfe-agent/DFe-Agent` â†’ `wia-ti/dfe-agent`
+   - npm auto-normalize: bin path `./dist/...` â†’ `dist/...`, repo URL prefix `git+`
+
+#### Funcionalidades do agente
+
+7. **`dfe-agent build` em Node** (PLAN_SPRINT14 D.5 follow-up)
+   - Regenerar base localmente sem precisar de GitHub Release
+   - Pipeline Py â†’ JS port (eliminar dependencia Python)
+   - Requer rewrite do collector em TS (~2-3 semanas)
+
+8. **Suporte Windows ARM64**
+   - sqlite-vec build oficial (Sprint 13 follow-up)
+   - Investigar build do better-sqlite3 para win-arm64
+
+9. **E2E bash smoke-test**
+   - Versao PowerShell ja existe (smoke-test.ps1), mas no CI Linux precisa versao bash
+   - Criar `tests/e2e/smoke-test.sh` com mesma logica
+
+10. **Documentar instalacao via Trusted Publisher** (npmjs.com docs)
+    - Capturar screenshots / passos para configurar
+    - Adicionar `docs/trusted-publisher-setup.md` no repo
+
+### Workflow resumido para retomar
+
+```bash
+# 1. Puxar atualizacoes do remote
+git pull origin main
+
+# 2. Verificar estado local
+cd packages/dfe-agent
+npm install
+npm run build
+npm test 2>&1 | tail -20
+cd ../..
+pytest tests/ --no-cov --no-header -q 2>&1 | tail -20
+
+# 3. Aplicar fix do item prioritario (1-10 acima)
+# Editar arquivos relevantes
+
+# 4. Testar localmente
+cd packages/dfe-agent
+npm test 2>&1 | tail -20
+cd ../..
+pytest tests/ -q 2>&1 | tail -20
+
+# 5. Publicar manualmente (se for release)
+cd packages/dfe-agent
+npm version patch  # ou minor, conforme o tipo de mudanca
+npm publish --access public
+
+# 6. Commit + push
+cd ../..
+git add -A
+git commit -m "sprint 15 round N: <descricao>"
+git push origin main
+```
