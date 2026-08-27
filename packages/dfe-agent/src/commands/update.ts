@@ -4,7 +4,7 @@
  * @see PLAN_SPRINT14.md Task C.2
  *
  * Fluxo:
- *   1. fetch GitHub Releases API (latest release em dfe-agent/DFe-Agent)
+ *   1. fetch GitHub Releases API (latest release em wia-ti/dfe-agent)
  *   2. localizar assets: dfe.db.gz + dfe.db.gz.sha256
  *   3. download gz + sha256
  *   4. verificar SHA-256 (gate B.3)
@@ -34,7 +34,7 @@ import { fileURLToPath } from "node:url";
 
 const PKG_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
 
-const GH_REPO = process.env.DFE_AGENT_GH_REPO ?? "dfe-agent/DFe-Agent";
+const GH_REPO = process.env.DFE_AGENT_GH_REPO ?? "wia-ti/dfe-agent";
 const GH_API = `https://api.github.com/repos/${GH_REPO}/releases/latest`;
 const ASSET_DB = "dfe.db.gz";
 const ASSET_SHA = "dfe.db.gz.sha256";

@@ -27,7 +27,7 @@ test("package.json expoe bin dfe-agent", () => {
   const pkg = JSON.parse(readFileSync(resolve(PKG_ROOT, "package.json"), "utf8"));
   assert.ok(pkg.bin, "campo bin ausente");
   assert.ok(pkg.bin["dfe-agent"], "bin dfe-agent ausente");
-  assert.equal(pkg.bin["dfe-agent"], "./dist/bin/dfe-agent.js");
+  assert.equal(pkg.bin["dfe-agent"], "dist/bin/dfe-agent.js");
 });
 
 test("package.json engines node >= 20 (Node 22.21.1 natives quebrados, 24 LTS usado)", () => {
