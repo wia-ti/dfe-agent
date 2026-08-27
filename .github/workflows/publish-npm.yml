@@ -1,11 +1,15 @@
 name: publish-npm
 
-# Publica @dfe-agent/dfe-agent no npm registry quando tag packages-v*.*.*
-# e' pushada.
+# Publica @wiati/dfe-agent no npm registry quando tag packages-v*.*.* e' pushada.
 #
-# Pre-requisitos:
-#   1. NPM_TOKEN secret em GitHub repo settings (npm automation token)
-#   2. Trust publisher configurado OU NODE_AUTH_TOKEN via secret
+# Auth: Trusted Publishing via OIDC (Sprint 14 round 17).
+# Configurar em https://www.npmjs.com/settings/wiati/profile > Trusted Publishers:
+#   - Provider: github
+#   - Repository: wia-ti/dfe-agent
+#   - Workflow filename: .github/workflows/publish-npm.yml
+#
+# SEM NENHUM TOKEN NECESSARIO. npm confia na identidade OIDC do GitHub Actions.
+# NAO precisa de NPM_TOKEN secret. NAO precisa de bypass 2FA.
 #
 # @see PLAN_SPRINT14.md Task F.1
 
@@ -15,17 +19,17 @@ on:
 
 permissions:
   contents: write
-  id-token: write  # para npm --provenance
+  id-token: write  # OIDC token para npm Trusted Publisher
 
 jobs:
   test:
     name: Test + drift-check
     uses: ./.github/workflows/test-npm-package.yml
-    # Reutiliza o job `test` do workflow de CI matrix (matrix ubuntu+windows)
-    # Isso garante que drift-check, build, lint e test rodam antes de publish.
+    # Reutiliza o job `test` do workflow de CI matrix.
+    # Garante que drift-check, build, lint e test rodam antes de publish.
 
   publish:
-    name: Publish @dfe-agent/dfe-agent to npm
+    name: Publish @wiati/dfe-agent to npm
     needs: test
     runs-on: ubuntu-latest
     steps:
@@ -69,28 +73,24 @@ jobs:
       - name: Verify dist/bin/dfe-agent.js shebang
         working-directory: packages/dfe-agent
         run: |
-          # Garante que o binario compilado tem shebang executavel
           head -1 dist/bin/dfe-agent.js | grep -q "^#!/usr/bin/env node" \
             || (echo "missing shebang in dist/bin/dfe-agent.js" && exit 1)
 
-      - name: Verify npm auth (diagnostico Sprint 14 round 15)
+      - name: Publish to npm (Trusted Publisher + provenance)
+        # Round 17: usa Trusted Publisher via OIDC. SEM token.
+        # 'id-token: write' (permissions acima) emite OIDC token que npm valida.
+        # --provenance assina o pacote com attestações build do GitHub.
         working-directory: packages/dfe-agent
+        run: npm publish --access public --provenance
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: |
-          echo "registry: $(npm config get registry)"
-          echo "whoami: $(npm whoami 2>&1 || echo UNAUTH)"
-          echo "token length: ${#NODE_AUTH_TOKEN}"
-          echo "package name: $(node -p "require('./package.json').name")"
+          NODE_AUTH_TOKEN: ''  # explicito: NAO usar token. Trusted Publisher via OIDC.
 
-      - name: Publish to npm (public)
-        # Sprint 14 round 13: removido --provenance (requer trusted publisher OIDC).
-        # Para re-habilitar provenance: configurar trusted publisher no npmjs.com
-        # e adicionar 'id-token: write' ao permissions block.
+      - name: Verify published package
         working-directory: packages/dfe-agent
-        run: npm publish --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          echo "Pacote publicado! Verificando em:"
+          echo "  https://www.npmjs.com/package/@wiati/dfe-agent"
+          npm view @wiati/dfe-agent 2>&1 || echo "(npm view falhou, mas publish step PASSOU)"
 
       - name: Cleanup tag local (human action)
         if: failure()
