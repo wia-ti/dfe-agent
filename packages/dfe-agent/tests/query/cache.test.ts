@@ -1,15 +1,14 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { existsSync, readFileSync } from "node:fs";
-import { resolve, dirname } from "node:path";
-import { fileURLToPath } from "node:url";
+import { resolve } from "node:path";
 
 const PKG_ROOT = process.cwd();
 const DFE_ROOT = resolve(PKG_ROOT, "../..");
 
-// Helper: CI runners (Linux + Node 22) tem bug em RemoveEnvironmentCleanupHook
-// ao carregar better-sqlite3/@xenova/transformers. Sprint 14: skip behaviorals
-// em CI. Rodam apenas localmente.
+// CI runners (Linux + Node 22) tem bug em RemoveEnvironmentCleanupHook
+// ao carregar better-sqlite3/@xenova/transformers. Sprint 14: skip
+// behaviorals em CI. Rodam apenas localmente.
 const CI = process.env.CI === "true" || process.env.DFE_AGENT_SKIP_NATIVE_TESTS === "1";
 
 test("QueryCache existe e expoe classe", () => {
