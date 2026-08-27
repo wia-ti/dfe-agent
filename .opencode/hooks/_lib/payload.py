@@ -44,6 +44,7 @@ if not (PROJECT_ROOT / "AGENTS.md").exists():
 _ENV_AGENT: str = "DFE_ACTIVE_AGENT"
 _AGENT_HINTS: list[tuple[str, re.Pattern[str]]] = [
     ("code-reviewer", re.compile(r"\bcode[-_]?reviewer|revisor\b", re.IGNORECASE)),
+    ("deployer", re.compile(r"\bdeployer\b(?!ed|ing|ment)", re.IGNORECASE)),
     ("dev", re.compile(r"\bdev\b(?!elop|ice|el|our|oid)", re.IGNORECASE)),
 ]
 

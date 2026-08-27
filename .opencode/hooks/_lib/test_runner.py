@@ -55,11 +55,13 @@ def _relpath(path: str) -> str:
 def suites_for_path(rel_path: str, agent: str) -> list[str]:
     """Retorna suites pytest a executar apos edicao de ``rel_path``.
 
-    Agentes canonicos (PLAN_SPRINT11 C):
+    Agentes canonicos (PLAN_SPRINT11 C, PLAN_SPRINT18):
         - ``"dev"`` (Sprint 10 B.4, owner de TODO o projeto): retorna
           todas as suites aplicaveis (uniao de ``_BACKEND_SUITES`` e
           ``_ML_SUITES``) para garantir que qualquer edicao passe pelo
           gate pytest correspondente.
+        - ``"deployer"`` (Sprint 18 D18.9): retorna suite vazia. Deployer
+          NAO testa codigo (e' acao atomica de git/npm/gh release).
         - qualquer outro slug: retorna suite vazia (nao ha mais agents
           legacy com escopo restrito; pre-Sprint 11, ``backend-engineer``
           e ``ml-engineer`` tinham escopos parciais que foram consolidados

@@ -342,16 +342,19 @@ na proxima sessao para retomar o desenvolvimento sem perder contexto.
 
 | Item | Status | Localizacao |
 |---|---|---|
-| Publicacao npm | âœ… 0.1.0 (CI, bug GH_REPO), 0.1.1 (manual) | https://www.npmjs.com/package/@wiati/dfe-agent |
-| GitHub Release v1.2.3 | âœ… com `dfe.db.gz` (61MB) + SHA256 | https://github.com/wia-ti/dfe-agent/releases/tag/v1.2.3 |
-| CI matrix (ubuntu 20+22) | âœ… build + lint + structural tests | .github/workflows/test-npm-package.yml |
-| CI publish (npm) | DISABLED `if: false` (user prefere manual) | .github/workflows/publish-npm.yml |
-| Setup funcional local | âœ… pytest + npm install + build OK | este diretorio |
-| Agents + skills + hooks + rules | âœ… 3 agents, 1 skill, 5 hooks, 5 rules | .opencode/ |
+| Publicacao npm | ✅ 0.1.0 (CI, bug GH_REPO), 0.1.1 (manual), 0.1.5 (manual) | https://www.npmjs.com/package/@wiati/dfe-agent |
+| GitHub Release v1.2.3 | ✅ com `dfe.db.gz` (61MB) + SHA256 | https://github.com/wia-ti/dfe-agent/releases/tag/v1.2.3 |
+| CI matrix (ubuntu 20+22) | ❌ **REMOVIDO em Sprint 18** (degradado, 22+ runs FAILURE) | — |
+| CI publish (npm) | ❌ **REMOVIDO em Sprint 18** (substituido por `/deploy --npm`) | — |
+| Deployer agent | ✅ Sprint 18: unico autorizado a git push / npm publish / gh release | .opencode/agent/deployer.md |
+| Setup funcional local | ✅ pytest + npm install + build OK | este diretorio |
+| Agents + skills + hooks + rules | ✅ 3 agents, 1 skill, 6 hooks, 5 rules | .opencode/ |
 
-### Pendencias para Sprint 15+
+### Pendencias para Sprint 19+
 
-#### CI / Publicacao
+> **Sprint 18**: CI foi **completamente removido** (3 workflows deletados). Todas as pendencias de CI/Publicacao abaixo estao **superseded** pelo agent `@deployer` + slash command `/deploy`. Novas pendencias sao listadas em `PLAN_SPRINT18.md` e `.opencode/rag/knowledge/2026-08-27-dev-feature-deployer-agent.md`.
+
+#### Deployment (substituiu CI / Publicacao)
 
 1. **Re-habilitar Trusted Publishing** com `--provenance`
    - Re-add `provenance: true` em `packages/dfe-agent/package.json`

@@ -2,15 +2,16 @@
 // Plugin OpenCode que despacha hooks PreToolUse/PostToolUse/Stop para
 // os scripts Python em .opencode/hooks/<agent>/ conforme o agent ativo.
 //
-// Mapeamento (PLAN_SPRINT11 C.3 — reduzido de 6 para 2 slugs):
+// Mapeamento (PLAN_SPRINT11 C.3 + PLAN_SPRINT18 D18.7):
 //   code-reviewer     -> pre_tool_use.py + pre_tool_use_bash.py
 //   dev               -> pre_tool_use.py + post_tool_use.py + stop.py
+//   deployer          -> pre_tool_use.py + post_tool_use.py + stop.py  (Sprint 18)
 //
 // Os 4 slugs legacy (backend-engineer, ml-engineer, prompt-engineer,
 // qa-engineer) foram removidos em Sprint 11: o agente `@dev` e' owner
-// de todas as alteracoes do projeto (Sprint 10). Antes da Sprint 10,
-// cada agent legacy tinha escopo parcial sobre src/{collector,parser}
-// etc.; com a consolidacao, esses escopos foram absorvidos por `@dev`.
+// de todas as alteracoes do projeto (Sprint 10). O agente `@deployer`
+// foi adicionado em Sprint 18 para substituir o CI (GitHub Actions foi
+// removido na mesma sprint).
 //
 // Exit code 2 -> bloqueia a tool (Claude Code convention).
 // Exit code 0 -> permite.
@@ -46,6 +47,12 @@ const AGENTS: Record<string, AgentProfile> = {
     slug: "code-reviewer",
     preToolUse: ".opencode/hooks/code-reviewer/pre_tool_use.py",
     preToolUseBash: ".opencode/hooks/code-reviewer/pre_tool_use_bash.py",
+  },
+  "deployer": {
+    slug: "deployer",
+    preToolUse: ".opencode/hooks/deployer/pre_tool_use.py",
+    postToolUse: ".opencode/hooks/deployer/post_tool_use.py",
+    stop: ".opencode/hooks/deployer/stop.py",
   },
   "dev": {
     slug: "dev",
@@ -155,13 +162,14 @@ function detectAgentFromSession(
   return fallback;
 }
 
-// Conjunto canonico de slugs reconhecidos (PLAN_SPRINT11 C.3 — reduzido
-// de 6 para 2). Slugs orfaos como "build" ou "plan" NAO devem mais
-// aparecer; este conjunto serve de referencia estavel para documentacao
-// e warnings.
+// Conjunto canonico de slugs reconhecidos (PLAN_SPRINT11 C.3 + PLAN_SPRINT18 D18.7).
+// Sprint 18 adicionou `deployer` para substituir o CI removido.
+// Slugs orfaos como "build" ou "plan" NAO devem mais aparecer; este
+// conjunto serve de referencia estavel para documentacao e warnings.
 const RECOGNIZED_AGENT_SLUGS: ReadonlySet<string> = new Set([
   "dev",
   "code-reviewer",
+  "deployer",
 ]);
 
 function warnAgentNotDetected(sessionID: string, logPath: string): void {

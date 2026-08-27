@@ -34,6 +34,14 @@ def _frontmatter(text: str) -> str:
     return parts[1]
 
 
+def _read_if_exists(name: str) -> str | None:
+    """Le command file se existir (helper para tests condicionais)."""
+    p: Path = COMMANDS_DIR / f"{name}.md"
+    if not p.exists():
+        return None
+    return p.read_text(encoding="utf-8")
+
+
 @pytest.mark.parametrize(
     "name", ["feature", "bug", "duvida"],
     ids=["feature", "bug", "duvida"],
@@ -41,6 +49,31 @@ def _frontmatter(text: str) -> str:
 def test_command_file_exists(name: str) -> None:
     p: Path = COMMANDS_DIR / f"{name}.md"
     assert p.exists(), f"Command `{name}` nao encontrado em {p}"
+
+
+def test_deploy_command_file_exists() -> None:
+    """Sprint 18: `/deploy` deve existir em `.opencode/command/deploy.md`."""
+    p: Path = COMMANDS_DIR / "deploy.md"
+    assert p.exists(), (
+        f"Command `deploy` nao encontrado em {p}. "
+        "Sprint 18 Task 2.9 deve criar este arquivo."
+    )
+
+
+def test_deploy_command_frontmatter_yaml_is_valid() -> None:
+    """Frontmatter YAML do `/deploy` deve ser valido."""
+    import yaml
+    text = _read("deploy")
+    yaml.safe_load(_frontmatter(text))
+
+
+def test_deploy_command_uses_deployer_agent() -> None:
+    """PLAN_SPRINT18 D18.4: `/deploy` invoca `agent: deployer` (NAO `dev`)."""
+    fm = _frontmatter(_read("deploy"))
+    assert re.search(r"^agent:\s*deployer\s*$", fm, re.MULTILINE), (
+        f"`/deploy` deve declarar `agent: deployer` no frontmatter "
+        f"(PLAN_SPRINT18 D18.4). Recebido:\n{fm}"
+    )
 
 
 @pytest.mark.parametrize("name", ["feature", "bug", "duvida"])
@@ -154,3 +187,78 @@ def test_feature_command_still_uses_tdd_loop() -> None:
     assert "code reviewer" in text.lower() or "code-reviewer" in text, (
         "/feature deve invocar code-reviewer."
     )
+
+
+# ============================================================
+# /deploy — Sprint 18 (PLAN_SPRINT18 D18.4)
+# ============================================================
+
+
+def test_deploy_command_calls_search_ts_with_deployer() -> None:
+    """RAG antes: `/deploy` invoca `search.ts` com `-a deployer`.
+
+    Sprint 18: slug canonico do agent e' `deployer`, NAO `dev`.
+    """
+    text = _read("deploy")
+    assert ".opencode/rag/search.ts" in text, (
+        "`/deploy` deve invocar `.opencode/rag/search.ts` na Fase 0."
+    )
+    assert ".claude/scripts/search.ts" not in text, (
+        "`/deploy` NAO deve apontar para `.claude/scripts/search.ts` "
+        "(path legado pre-Sprint 12)."
+    )
+    assert re.search(r"-a\s+deployer", text), (
+        "`/deploy` deve chamar `search.ts` com `-a deployer` "
+        "(slug canonico Sprint 18)."
+    )
+
+
+def test_deploy_command_calls_embed_ts_in_final_phase() -> None:
+    """RAG depois: `/deploy` invoca `embed.ts` (sincrono) na fase final."""
+    text = _read("deploy")
+    assert ".opencode/rag/embed.ts" in text, (
+        "`/deploy` deve invocar `.opencode/rag/embed.ts` na fase final."
+    )
+    assert re.search(r"embed\.ts\s+--file", text), (
+        "`/deploy` deve rodar `embed.ts --file <md>` (sincrono)."
+    )
+
+
+def test_deploy_command_documents_modes() -> None:
+    """`/deploy` documenta os 4 modos canonicos: bare, --tag, --npm, --release."""
+    text = _read("deploy")
+    for flag in ("--tag", "--npm", "--release"):
+        assert flag in text, (
+            f"`/deploy` deve documentar o modo `{flag}` (D18.4). "
+            f"Texto (primeiros 800 chars):\n{text[:800]}"
+        )
+
+
+def test_deploy_command_has_human_gate() -> None:
+    """`/deploy` tem gate humano explicito antes de acoes destrutivas."""
+    text = _read("deploy")
+    text_lower = text.lower()
+    assert "humano" in text_lower or "human" in text_lower, (
+        "`/deploy` deve mencionar gate humano (deployer pede confirmacao)."
+    )
+    assert "confirm" in text_lower or "aprov" in text_lower, (
+        "`/deploy` deve exigir confirmacao/aprovacao antes de acoes destrutivas."
+    )
+    # Acoes destrutivas devem ter gate explicito
+    assert "--npm" in text or "--release" in text, (
+        "`/deploy` deve mencionar pelo menos uma das flags destrutivas."
+    )
+
+
+def test_no_command_references_legacy_agent_with_deployer_substring() -> None:
+    """Gate anti-regressao: nenhum command fora `/deploy` usa `agent: deployer`."""
+    for cmd_file in COMMANDS_DIR.glob("*.md"):
+        if cmd_file.name == "deploy.md":
+            continue  # deploy.md e' o legitimo
+        text = cmd_file.read_text(encoding="utf-8")
+        assert not re.search(
+            r"^agent:\s*deployer\s*$", text, re.MULTILINE
+        ), (
+            f"Command `{cmd_file.name}` referencia `agent: deployer` "
+            "mas deployer e' exclusivo de `/deploy`."
+        )

@@ -1,24 +1,28 @@
-"""Gate anti-regressao: agents/hooks legacy NAO voltam (PLAN_SPRINT11 C.5 + Sprint 12 B12.1).
+"""Gate anti-regressao: agents/hooks legacy NAO voltam (PLAN_SPRINT11 C.5 + Sprint 12 B12.1 + Sprint 18).
 
-Garante que apos a Sprint 12:
+Garante que apos a Sprint 18:
 
-- Apenas ``dev.md``, ``code-reviewer.md``, ``dfe-agent.md`` existem em
-  ``.opencode/agent/`` (canonical agents; Sprint 11 D.1 + Sprint 12 B12.2).
-- Apenas ``dev/``, ``code-reviewer/``, ``_lib/`` existem em
+- Apenas ``dev.md``, ``code-reviewer.md``, ``dfe-agent.md``, ``deployer.md``
+  existem em ``.opencode/agent/`` (canonical agents; Sprint 11 D.1 + Sprint 12
+  B12.2 + Sprint 18 B18.2).
+- Apenas ``dev/``, ``code-reviewer/``, ``deployer/``, ``_lib/`` existem em
   ``.opencode/hooks/`` (alem de arquivos soltos canonicos como
   ``domain_guard.py``, ``allowed_domains.py``, ``__init__.py``,
-  ``README.md``) - Sprint 12 B12.1.
+  ``README.md``) - Sprint 12 B12.1 + Sprint 18 B18.2.
 - ``.claude/hooks/`` e ``.claude/agents/`` estao vazios (Sprint 12 Fases
   1 + 3); serao removidos completamente na Fase 5.
-- O plugin TS ``agent-hooks.ts`` roteia apenas para 2 slugs canonicos
-  (``dev`` + ``code-reviewer``).
-- ``_lib/payload.py::_AGENT_HINTS`` reconhece apenas esses 2 slugs.
+- O plugin TS ``agent-hooks.ts`` roteia para 3 slugs canonicos
+  (``dev`` + ``code-reviewer`` + ``deployer``; Sprint 18 D18.7).
+- ``_lib/payload.py::_AGENT_HINTS`` reconhece esses 3 slugs.
 - ``_lib/test_runner.py::suites_for_path`` nao tem mais branch para
   ``backend-engineer`` ou ``ml-engineer``.
 
 > **Sprint 12 (B12.1 + B12.2 + B12.3)**: harness consolidado em
 > ``.opencode/``. Os 2 agents stub em ``.claude/agents/`` foram
 > removidos (canonical em ``.opencode/agent/``).
+>
+> **Sprint 18 (B18.2)**: agent ``deployer`` adicionado para substituir o CI
+> (3 workflows `.github/workflows/*.yml` foram removidos na mesma sprint).
 """
 from __future__ import annotations
 
@@ -32,8 +36,8 @@ import pytest
 PROJECT_ROOT: Path = Path(__file__).resolve().parents[2]
 
 
-# Slugs canonicos apos Sprint 11 (reduzido de 6 para 2).
-CANONICAL_SLUGS: frozenset[str] = frozenset({"dev", "code-reviewer"})
+# Slugs canonicos apos Sprint 18 (3 slugs: dev, code-reviewer, deployer).
+CANONICAL_SLUGS: frozenset[str] = frozenset({"dev", "code-reviewer", "deployer"})
 
 # Slugs que devem ter sido removidos (anti-regressao explicita).
 LEGACY_SLUGS: frozenset[str] = frozenset({
@@ -132,11 +136,12 @@ def test_only_canonical_hooks_in_opencode_hooks_dir() -> None:
 
 
 def test_opencode_hooks_required_directories_exist() -> None:
-    """Diretorios canonicos ``dev/``, ``code-reviewer/``, ``_lib/`` existem."""
+    """Diretorios canonicos ``dev/``, ``code-reviewer/``, ``deployer/``, ``_lib/`` existem."""
     hooks_dir = PROJECT_ROOT / ".opencode" / "hooks"
-    for name in ("dev", "code-reviewer", "_lib"):
+    for name in ("dev", "code-reviewer", "deployer", "_lib"):
         assert (hooks_dir / name).is_dir(), (
-            f".opencode/hooks/{name}/ deve existir (unificacao Sprint 12)"
+            f".opencode/hooks/{name}/ deve existir "
+            f"(unificacao Sprint 12 + Sprint 18 deployer)"
         )
 
 
@@ -168,7 +173,7 @@ def _read_plugin_ts() -> str:
 
 
 def test_plugin_ts_only_routes_to_canonical_agents() -> None:
-    """Plugin TS roteia apenas para ``dev`` e ``code-reviewer``."""
+    """Plugin TS roteia apenas para ``dev``, ``code-reviewer``, ``deployer``."""
     src = _read_plugin_ts()
     for legacy in LEGACY_SLUGS:
         assert f'"{legacy}"' not in src, (
@@ -198,7 +203,7 @@ def test_plugin_ts_recognized_agent_slugs_reduced() -> None:
 
 
 def test_plugin_ts_hook_paths_use_opencode_prefix() -> None:
-    """Sprint 12 (B12.1): o plugin TS aponta para ``.opencode/hooks/...``."""
+    """Sprint 12 (B12.1) + Sprint 18: o plugin TS aponta para ``.opencode/hooks/...``."""
     src = _read_plugin_ts()
     for legacy_path in (
         ".claude/hooks/code-reviewer/pre_tool_use.py",
@@ -212,10 +217,14 @@ def test_plugin_ts_hook_paths_use_opencode_prefix() -> None:
             f"(Sprint 12 B12.1)"
         )
     canonical_count = src.count(".opencode/hooks/")
-    assert canonical_count >= 5, (
-        f"agent-hooks.ts deveria apontar para 5 paths `.opencode/hooks/...` "
-        f"(preToolUse, preToolUseBash, postToolUse, stop x2 profiles); "
-        f"obtido {canonical_count}"
+    # Sprint 18: 3 profiles (dev/code-reviewer/deployer) × 3 hooks = 9 paths
+    # esperados. code-reviewer tem 2 hooks (pre_tool_use + pre_tool_use_bash),
+    # deployer tem 3 hooks (pre_tool_use + post_tool_use + stop),
+    # dev tem 3 hooks (pre_tool_use + post_tool_use + stop).
+    # Total: 2 + 3 + 3 = 8 paths canonicos. Gate tolerante a >= 8.
+    assert canonical_count >= 8, (
+        f"agent-hooks.ts deveria apontar para >=8 paths `.opencode/hooks/...` "
+        f"(3 profiles x 2-3 hooks); obtido {canonical_count}"
     )
 
 
