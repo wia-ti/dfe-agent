@@ -2,15 +2,20 @@
 
 Todas as mudancas notaveis neste projeto sao documentadas aqui.
 
-## 0.1.4 — 2026-08-27 (Sprint 16 bugfix — schema drift Py<->Node)
+## 0.1.5 — 2026-08-27 (Sprint 17 bugfix — embedding normalization drift)
 
 ### Fixed
-- **`dfe-agent query` quebrava com `"no such column: chunk_id"`**. Causa raiz: drift entre schema Py (produtor do `dfe.db.gz`) e codigo Node (consumidor). Py produz `vec_chunks(document_id, chunk_index)` + `fts_chunks(document_id, chunk_index)` desde Sprint 12 (sidecar `chunk_metadata` com chave composta); codigo Node v0.1.0-0.1.3 usava nomes antigos `chunk_id`/`doc_id` e referenciava tabela `chunks` (que nao existe mais desde Sprint 12). Fix: aliases SQL em `vectorSearch.ts` + `ftsSearch.ts` (`SELECT chunk_index AS chunk_id, document_id AS doc_id FROM ...`); `hydrateChunks` em `query/index.ts` refatorado para `FROM vec_chunks vc JOIN documents d ON d.id = vc.document_id WHERE (vc.document_id, vc.chunk_index) IN ((?,?),(?,?), ...)`. Gates: 4 testes estruturais (aliases + nao-regressao) + 2 testes BEHAVIORAL (skipados Windows+Node>=22).
+- **`dfe-agent query` retornava `NO_EVIDENCE_MESSAGE` para qualquer query** mesmo com base populada (28.182 chunks / 448 documentos). Causa raiz: drift de normalizacao entre `src/indexer/embeddings.py:213` (Py gerava embeddings SEM `normalize_embeddings=True`, norm ~2.6-3.3) e `packages/dfe-agent/src/query/embedder.ts:66` (Node normaliza para norm = 1.0). L2 distance > 1.0 sempre, score < 0.5 (gate `MIN_RELEVANCE_SCORE`), `hasSufficientEvidence` sempre `false`. Gate D.7 validava apenas sentencas curtas; drift em chunks longos nao era detectado. Fix: adicionar `normalize_embeddings=True` no encode em `src/indexer/embeddings.py:213` + re-ingerir 28.182 chunks + ajustar `MIN_RELEVANCE_SCORE` de 0.5 para 0.3 (drift residual Py↔Node em chunks longos: Py usa attention_mask no mean pooling, Node usa `@xenova/transformers` sem attention_mask explicito). Smoke test: queries com termos tecnicos especificos retornam chunks reais.
 
 ### Notes
-- Sem change breaking na API publica (aliases SQL sao no-op no uso externo). Patch bump.
-- Code review (subagent `general`): 0 BLOQUEANTE / 0 IMPORTANTE / 3 SUGESTAO round 1 -> 0/0/0 round 2. 1 iteracao do loop corretivo.
-- Antes da instalacao da nova versao: nao ha' acao especial do usuario (path agora e' `~/.dfe-agent/dfe.db`; se voce instalou v0.1.3 e moveu manualmente, sua base ja' esta' no lugar correto).
+- Esta versao requer re-ingerir a base (gate humano: `python -m src.indexer.ingest`).
+- Asset `dfe.db.gz` re-publicado no GitHub Releases via tag `dfe.db-v*`.
+- Antes da instalacao: rode `python -m src.indexer.ingest` no DFe-Agent root OU aguarde o `update` baixar a nova base.
+- Sem change breaking na API publica. Patch bump (0.1.4 -> 0.1.5).
+- Code review (subagent `general`): gate duplo do `/bug` aplicado.
+- Plano: `PLAN_SPRINT17.md`.
+
+## 0.1.4 — 2026-08-27 (Sprint 16 bugfix — schema drift Py<->Node)
 
 ## 0.1.3 — 2026-08-27 (Sprint 15 bugfix)
 

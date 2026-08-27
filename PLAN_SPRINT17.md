@@ -21,7 +21,7 @@ Probe direto (Node + sqlite-vec): embeddar o texto literal de um chunk retorna *
 
 ## Decisao (Sprint 17)
 
-**Opcao A**: editar `src/indexer/embeddings.py:213` para `normalize_embeddings=True` + re-ingerir 30.703 chunks (~10-15 min) + republicar `dfe.db.gz` no GitHub Releases.
+**Opcao A**: editar `src/indexer/embeddings.py:213` para `normalize_embeddings=True` + re-ingerir 28.182 chunks (448 documentos; ~10-15 min) + republicar `dfe.db.gz` no GitHub Releases.
 
 Alternativa B (re-criar `vec_chunks` com `distance_metric=cosine`) fica como FOLLOW-UP Sprint 18+.
 
@@ -61,7 +61,7 @@ Alternativa B (re-criar `vec_chunks` com `distance_metric=cosine`) fica como FOL
 
 #### Task 3.2 — Gate humano: re-ingerir a base
 - Comando: `python -m src.indexer.ingest` (BLOQUEADO pelo `dev/pre_tool_use.py` para o agent; gate humano).
-- Esperado: re-ingerir 30.703 chunks em ~10-15 min. Loga progresso.
+- Esperado: re-ingerir 28.182 chunks em ~10-15 min. Loga progresso.
 - Pos-condicao: `storage/dfe.db` tem norm medio dos embeddings == 1.0.
 
 #### Task 3.3 — Regenerar `dfe.db.gz`
@@ -133,7 +133,7 @@ Alternativa B (re-criar `vec_chunks` com `distance_metric=cosine`) fica como FOL
 
 ## Follow-ups Sprint 18+
 
-1. **Re-criar `vec_chunks` com `distance_metric=cosine`** (mais correto que L2). Gate `vec0(embedding float[384], distance_metric=cosine, ...)`. Migration nova em `src/db/migrations.py`. Re-ingerir 30k chunks.
+1. **Re-criar `vec_chunks` com `distance_metric=cosine`** (mais correto que L2). Gate `vec0(embedding float[384], distance_metric=cosine, ...)`. Migration nova em `src/db/migrations.py`. Re-ingerir ~28.182 chunks (estimativa; corpus pode variar).
 2. **Re-habilitar CI publish** (`publish-npm.yml` remover `if: false` + `needs: test`).
 3. **Re-habilitar CI matrix Windows** (gate nativo Node 22/24 com `better-sqlite3` upgrade).
 4. **Estender `tests/e2e/smoke-test.ps1`** para incluir `query` end-to-end.

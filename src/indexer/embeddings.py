@@ -203,20 +203,15 @@ class EmbeddingProvider:
 
         Returns:
             Lista de vetores (lista de floats), um por texto de entrada.
-            Cada vetor tem ``self.dim`` dimensoes e norma L2 > 0.
+            Cada vetor tem ``self.dim`` dimensoes e norma L2 == 1.0
+            (gate Bug D Sprint 17: ``normalize_embeddings=True``).
 
         Raises:
             RuntimeError: Se o modelo nao puder ser carregado (rede
                 indisponivel, modelo inexistente, etc.).
         """
         model: SentenceTransformer = self._load()
-        # Gate Bug D Sprint 17: normalize_embeddings=True para casar com Node
-        # (packages/dfe-agent/src/query/embedder.ts:66 usa normalize: true).
-        # Sem normalize, a base em ~/.dfe-agent/dfe.db tinha norm ~2.6-3.3 e o
-        # Node norm = 1.0, gerando L2 distance > 1.0 sempre e score < 0.5
-        # (MIN_RELEVANCE_SCORE gate hasSufficientEvidence). Fix: normalizar
-        # no Py para que L2 entre vetores normalizados = sqrt(2 * (1 - cos))
-        # seja monotonicamente relacionado a cosine similarity (ranking correto).
+        # Gate Bug D Sprint 17: normalize_embeddings=True (ver docstring acima).
         vectors = model.encode(texts, convert_to_numpy=True, normalize_embeddings=True).tolist()
         return vectors
 
