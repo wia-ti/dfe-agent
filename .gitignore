@@ -62,6 +62,8 @@ storage/*.sqlite-journal
 storage/*.sqlite-wal
 storage/*.sqlite-shm
 data/*.db
+data/*.db.gz
+data/*.db.gz.sha256
 data/*.sqlite
 data/*.sqlite3
 *.db
