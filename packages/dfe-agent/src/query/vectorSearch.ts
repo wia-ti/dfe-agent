@@ -44,9 +44,11 @@ export function vectorSearch(
 
   // sqlite-vec usa serializacao nativa; precisamos passar Buffer
   const vecBuf = Buffer.from(query_vec.buffer);
+  // Schema Py real (gate Sprint 16 Bug C): vec_chunks(document_id, chunk_index).
+  // Aliases preservam a interface Node (chunk_id, doc_id) sem mudar a chamada externa.
   const rows = handle
     .prepare(
-      `SELECT chunk_id, doc_id, distance
+      `SELECT chunk_index AS chunk_id, document_id AS doc_id, distance
          FROM vec_chunks
         WHERE embedding MATCH ?
         ORDER BY distance

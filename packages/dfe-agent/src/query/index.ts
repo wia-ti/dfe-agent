@@ -14,7 +14,9 @@
  *   NUNCA duplique este literal.
  */
 
-import Database from "better-sqlite3";
+import Database, {
+  type Database as BetterSqlite3Database,
+} from "better-sqlite3";
 
 import { resolveBaseDir, resolveDbPath } from "../paths.js";
 import { encode, EMBEDDING_MODEL_NAME } from "./embedder.js";
@@ -62,21 +64,6 @@ export interface SearchOptions {
 }
 
 /**
- * Re-export canônico de `resolveBaseDir` movido para `../paths.js` (gate
- * Sprint 15 BUG-A). Mantido via `export { resolveBaseDir } from
- * "../paths.js"` acima para nao quebrar callers externos.
- */
-
-interface ChunkRow {
-  chunk_id: number;
-  doc_id: number;
-  text: string;
-  url: string;
-  title: string;
-  published_at: string | null;
-}
-
-/**
  * Recency boost (gate paridade com Py `src/query/query_engine.py:34-36`).
  *
  * Decaimento exponencial: doc recente (now) -> 1.0; doc com idade = half_life
@@ -99,35 +86,61 @@ function applyRecency(score: number, publishedAt: string | null): number {
   return (1 - RECENCY_WEIGHT) * score + RECENCY_WEIGHT * rec;
 }
 
-function hydrateChunks(
-  handle: Database.Database,
+/**
+ * Hidrata hits com texto + metadados do documento. Gate Sprint 16 Bug C:
+ * usa `vec_chunks` (chave composta document_id/chunk_index) e JOIN em
+ * `documents` por `document_id` — schema Py real. A tabela `chunks` antiga
+ * nao existe mais desde Sprint 12 (foi substituida por vec_chunks + sidecar
+ * chunk_metadata).
+ *
+ * Exportado para testes (tests/query/index.test.ts). NAO re-exportar em
+ * src/index.ts — helper interno.
+ */
+export function hydrateChunks(
+  handle: BetterSqlite3Database,
   hits: Array<{ chunk_id: number; doc_id: number; score: number }>,
 ): HydratedChunk[] {
   if (hits.length === 0) return [];
-  const ids = hits.map((h) => h.chunk_id);
-  const placeholders = ids.map(() => "?").join(",");
+  // Tuplas WHERE IN: cada hit vira (?,?) para (document_id, chunk_index).
+  const tuples = hits.map(() => "(?,?)").join(",");
+  const params = hits.flatMap((h) => [h.doc_id, h.chunk_id]);
   const rows = handle
     .prepare(
-      `SELECT c.id AS chunk_id, c.doc_id, c.text, d.url, d.title, d.published_at
-         FROM chunks c
-         JOIN documents d ON c.doc_id = d.id
-        WHERE c.id IN (${placeholders})`,
+      `SELECT vc.document_id,
+              vc.chunk_index,
+              vc.text,
+              d.url,
+              d.title,
+              d.published_at
+         FROM vec_chunks vc
+         JOIN documents d ON d.id = vc.document_id
+        WHERE (vc.document_id, vc.chunk_index) IN (${tuples})`,
     )
-    .all(...ids) as ChunkRow[];
-  const byId = new Map(rows.map((r) => [r.chunk_id, r]));
+    .all(...params) as Array<{
+      document_id: number;
+      chunk_index: number;
+      text: string;
+      url: string;
+      title: string;
+      published_at: string | null;
+    }>;
+  // Indexar por (doc_id, chunk_id) — chave composta de hydrateChunks.
+  const byKey = new Map<string, (typeof rows)[number]>(
+    rows.map((r) => [`${r.document_id}:${r.chunk_index}`, r]),
+  );
   return hits
-    .map((h) => {
-      const r = byId.get(h.chunk_id);
+    .map((h): HydratedChunk | null => {
+      const r = byKey.get(`${h.doc_id}:${h.chunk_id}`);
       if (!r) return null;
       return {
-        chunk_id: r.chunk_id,
-        doc_id: r.doc_id,
+        chunk_id: h.chunk_id,
+        doc_id: h.doc_id,
         text: r.text,
         url: r.url,
         title: r.title,
         published_at: r.published_at,
         score: h.score,
-      } as HydratedChunk;
+      };
     })
     .filter((c): c is HydratedChunk => c !== null);
 }

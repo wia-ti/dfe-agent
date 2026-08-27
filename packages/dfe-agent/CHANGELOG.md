@@ -2,6 +2,16 @@
 
 Todas as mudancas notaveis neste projeto sao documentadas aqui.
 
+## 0.1.4 — 2026-08-27 (Sprint 16 bugfix — schema drift Py<->Node)
+
+### Fixed
+- **`dfe-agent query` quebrava com `"no such column: chunk_id"`**. Causa raiz: drift entre schema Py (produtor do `dfe.db.gz`) e codigo Node (consumidor). Py produz `vec_chunks(document_id, chunk_index)` + `fts_chunks(document_id, chunk_index)` desde Sprint 12 (sidecar `chunk_metadata` com chave composta); codigo Node v0.1.0-0.1.3 usava nomes antigos `chunk_id`/`doc_id` e referenciava tabela `chunks` (que nao existe mais desde Sprint 12). Fix: aliases SQL em `vectorSearch.ts` + `ftsSearch.ts` (`SELECT chunk_index AS chunk_id, document_id AS doc_id FROM ...`); `hydrateChunks` em `query/index.ts` refatorado para `FROM vec_chunks vc JOIN documents d ON d.id = vc.document_id WHERE (vc.document_id, vc.chunk_index) IN ((?,?),(?,?), ...)`. Gates: 4 testes estruturais (aliases + nao-regressao) + 2 testes BEHAVIORAL (skipados Windows+Node>=22).
+
+### Notes
+- Sem change breaking na API publica (aliases SQL sao no-op no uso externo). Patch bump.
+- Code review (subagent `general`): 0 BLOQUEANTE / 0 IMPORTANTE / 3 SUGESTAO round 1 -> 0/0/0 round 2. 1 iteracao do loop corretivo.
+- Antes da instalacao da nova versao: nao ha' acao especial do usuario (path agora e' `~/.dfe-agent/dfe.db`; se voce instalou v0.1.3 e moveu manualmente, sua base ja' esta' no lugar correto).
+
 ## 0.1.3 — 2026-08-27 (Sprint 15 bugfix)
 
 ### Fixed

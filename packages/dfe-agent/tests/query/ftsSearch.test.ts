@@ -45,20 +45,47 @@ test("sanitizeQuery BEHAVIORAL: remove chars especiais mas preserva phrase queri
   const Database = (await import("better-sqlite3")).default;
 
   const handle = new Database(":memory:");
+  // Schema Py real (FTS5 com chaves document_id/chunk_index).
+  // Pre-fix: o codigo referencia chunk_id/doc_id no SELECT -> "no such column: chunk_id".
   handle.exec(`
     CREATE VIRTUAL TABLE fts_chunks USING fts5(
-      chunk_id UNINDEXED, doc_id UNINDEXED, text
+      text,
+      section_path,
+      document_id UNINDEXED,
+      chunk_index UNINDEXED,
+      source_url UNINDEXED,
+      doc_title UNINDEXED,
+      tokenize = 'unicode61 remove_diacritics 2'
     );
-    INSERT INTO fts_chunks (chunk_id, doc_id, text) VALUES
-      (1, 100, 'nota tecnica NF-e 2024'),
-      (2, 200, 'cancelamento de NFe apos publicacao'),
-      (3, 300, 'prazo de validade da nota fiscal');
+    INSERT INTO fts_chunks (text, section_path, document_id, chunk_index, source_url, doc_title) VALUES
+      ('nota tecnica NF-e 2024', '', 100, 0, 'https://ex.com/1', 'NT 2024.001'),
+      ('cancelamento de NFe apos publicacao', '', 200, 0, 'https://ex.com/2', 'Cancelamento'),
+      ('prazo de validade da nota fiscal', '', 300, 0, 'https://ex.com/3', 'Prazo');
   `);
 
   const hits = ftsSearch(handle as any, "nota tecnica", 5);
   assert.ok(hits.length >= 1, `esperado >=1 hit; obtido ${hits.length}`);
-  // doc 100 contem "nota tecnica" exato
+  // doc 100 contem "nota tecnica" exato. Apos fix, doc_id e' alias de document_id.
   assert.equal(hits[0].doc_id, 100, `doc_id mais relevante deve ser 100; obtido ${hits[0].doc_id}`);
 
   handle.close();
+});
+
+test("ftsSearch.ts usa schema Py real (aliases chunk_index AS chunk_id, document_id AS doc_id) — gate Bug C Sprint 16", () => {
+  const src = readFileSync(resolve(PKG_ROOT, "src/query/ftsSearch.ts"), "utf8");
+  assert.match(
+    src,
+    /chunk_index\s+AS\s+chunk_id/,
+    "ftsSearch precisa usar alias chunk_index AS chunk_id (gate Bug C)",
+  );
+  assert.match(
+    src,
+    /document_id\s+AS\s+doc_id/,
+    "ftsSearch precisa usar alias document_id AS doc_id (gate Bug C)",
+  );
+  assert.doesNotMatch(
+    src,
+    /SELECT\s+chunk_id\s*,\s*doc_id/,
+    "ftsSearch nao pode usar 'SELECT chunk_id, doc_id' direto (drift Py)",
+  );
 });

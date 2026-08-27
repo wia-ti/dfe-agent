@@ -46,9 +46,11 @@ export function ftsSearch(
   const ftsQuery = sanitizeQuery(query);
   if (!ftsQuery) return [];
 
+  // Schema Py real (gate Sprint 16 Bug C): fts_chunks(document_id, chunk_index).
+  // Aliases preservam a interface Node (chunk_id, doc_id).
   const rows = handle
     .prepare(
-      `SELECT chunk_id, doc_id, bm25(fts_chunks) AS score
+      `SELECT chunk_index AS chunk_id, document_id AS doc_id, bm25(fts_chunks) AS score
          FROM fts_chunks
         WHERE fts_chunks MATCH ?
         ORDER BY score
