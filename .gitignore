@@ -1,6 +1,5 @@
-# OpenCode não possui arquivo de exclusão próprio e depende do .gitignore.
-# Este arquivo cobre as mesmas categorias do .claudeignore para garantir
-# que contexto sensível/irrelevante nunca seja carregado pelo agente.
+# Exclusoes do repositorio. Artefatos locais do harness Claude Code
+# (rag.db, node_modules, settings.local.json) ficam em .claude/.gitignore.
 
 # Dependências
 .venv/
@@ -73,17 +72,7 @@ data/*.sqlite3
 *.db-wal
 *.db-shm
 
-# Sistema de RAG meta-cognitivo (.claude/)
-.claude/rag.db
-.claude/rag.db-journal
-.claude/rag.db-wal
-.claude/rag.db-shm
-.claude/knowledge/
-.claude/state/
-.claude/inject-*.json
-.claude/node_modules/
-.claude/dist/
-.claude/.cache/
+# Harness Claude Code: ver .claude/.gitignore
 node_modules/
 
 # Uploads e mídia
@@ -106,15 +95,6 @@ desktop.ini
 *.swp
 *.swo
 *~
-
-# OpenCode
-.opencode/cache/
-.opencode/log/
-.opencode/sessions/
-.opencode/state/
-.opencode/opencode.json
-.opencode/node_modules/
-.opencode/package-lock.json
 
 # Scripts ad-hoc gerados pelo agente LLM (impede reincidencia — ver PLAN_SPRINT5.md F.2)
 # Apenas scripts canonicos declarados explicitamente sao versionados.

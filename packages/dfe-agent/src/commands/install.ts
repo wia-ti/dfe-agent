@@ -1,5 +1,5 @@
 /**
- * commands/install.ts — copia agent + skill de dist/ para .opencode/ do projeto.
+ * commands/install.ts — copia agent + skill de dist/ para .claude/ do projeto (Claude Code).
  *
  * @see PLAN_SPRINT14.md Task C.1
  *
@@ -8,8 +8,8 @@
  *   <pkg>/dist/skill/dfe-fiscal/
  *
  * Destino (escrita):
- *   <cwd>/.opencode/agent/dfe-agent.md
- *   <cwd>/.opencode/skills/dfe-fiscal/
+ *   <cwd>/.claude/agents/dfe-agent.md
+ *   <cwd>/.claude/skills/dfe-fiscal/
  *
  * Exit codes:
  *   0  sucesso
@@ -28,8 +28,8 @@ export interface InstallOptions {
 }
 
 export async function install(opts: InstallOptions): Promise<number> {
-  const target = resolve(process.cwd(), ".opencode");
-  const targetAgent = `${target}/agent/dfe-agent.md`;
+  const target = resolve(process.cwd(), ".claude");
+  const targetAgent = `${target}/agents/dfe-agent.md`;
   const targetSkill = `${target}/skills/dfe-fiscal`;
 
   // 1. Validar source (dist/)
@@ -51,7 +51,7 @@ export async function install(opts: InstallOptions): Promise<number> {
 
   // 2. Criar target dir
   try {
-    mkdirSync(`${target}/agent`, { recursive: true });
+    mkdirSync(`${target}/agents`, { recursive: true });
     mkdirSync(`${target}/skills/dfe-fiscal`, { recursive: true });
   } catch (err) {
     console.error(`[dfe-agent] nao foi possivel criar ${target}: ${(err as Error).message}`);
@@ -82,6 +82,6 @@ export async function install(opts: InstallOptions): Promise<number> {
 
   console.info(`[dfe-agent] proximos passos:`);
   console.info(`[dfe-agent]   npx dfe-agent update   # baixa base RAG`);
-  console.info(`[dfe-agent]   opencode run           # abre TUI e seleciona @dfe-agent`);
+  console.info(`[dfe-agent]   claude                 # use o subagent dfe-agent (ou /agents)`);
   return 0;
 }

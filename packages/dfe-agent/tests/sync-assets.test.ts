@@ -36,7 +36,7 @@ test("sync-assets copia agent.md para dist/", () => {
     const prodDist = resolve(DFE_ROOT, "packages/dfe-agent/dist/agent.md");
     // Apenas valida que apos sync manual (ja' feito em C.I. smoke), arquivo existe
     // e tem mesmo SHA-256 do source.
-    const src = resolve(DFE_ROOT, ".opencode/agent/dfe-agent.md");
+    const src = resolve(DFE_ROOT, ".claude/agents/dfe-agent.md");
     assert.ok(existsSync(src), "source deve existir");
     if (existsSync(prodDist)) {
       const sha = (p: string) =>
@@ -49,7 +49,7 @@ test("sync-assets copia agent.md para dist/", () => {
 });
 
 test("sync-assets copia SKILL.md recursivamente", () => {
-  const src = resolve(DFE_ROOT, ".opencode/skills/dfe-fiscal/SKILL.md");
+  const src = resolve(DFE_ROOT, ".claude/skills/dfe-fiscal/SKILL.md");
   const dst = resolve(DFE_ROOT, "packages/dfe-agent/dist/skill/dfe-fiscal/SKILL.md");
   assert.ok(existsSync(src), "source SKILL.md deve existir");
   if (existsSync(dst)) {
@@ -62,7 +62,7 @@ test("sync-assets copia SKILL.md recursivamente", () => {
 test("dist/agent.md nao existe ANTES do primeiro sync (gate B.1)", () => {
   // So' relevante se for a primeira vez; em CI, sync sempre roda antes.
   // Aqui validamos a invariante: source sempre existe.
-  const src = resolve(DFE_ROOT, ".opencode/agent/dfe-agent.md");
+  const src = resolve(DFE_ROOT, ".claude/agents/dfe-agent.md");
   assert.ok(existsSync(src));
 });
 
@@ -72,5 +72,5 @@ test("sync-assets.ts existe e expoe funcao main", () => {
   const src = readFileSync(scriptPath, "utf8");
   // Valida que tem pelo menos uma das APIs esperadas
   assert.match(src, /cpSync|copyFile|writeFileSync/);
-  assert.match(src, /\.opencode\/(agent\/dfe-agent\.md|skills\/dfe-fiscal)/);
+  assert.match(src, /\.claude\/(agents\/dfe-agent\.md|skills\/dfe-fiscal)/);
 });

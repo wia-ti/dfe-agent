@@ -1,6 +1,6 @@
 """Coletor/Scraper: descobre e baixa documentos dos portais oficiais.
 
-Importante: este modulo adiciona ``.opencode/`` ao ``sys.path`` no momento da
+Importante: este modulo adiciona ``.claude/`` ao ``sys.path`` no momento da
 importacao do pacote, para que ``downloader.py`` e ``portal_index.py`` consigam
 fazer ``from hooks.domain_guard import validate_url, ALLOWED_DOMAINS``.
 
@@ -18,7 +18,7 @@ import sys
 from pathlib import Path
 
 if not os.environ.get("DFE_DISABLE_HOOKS_BOOTSTRAP"):
-    _HOOKS_PKG_PARENT: Path = Path(__file__).resolve().parents[2] / ".opencode"
+    _HOOKS_PKG_PARENT: Path = Path(__file__).resolve().parents[2] / ".claude"
     if str(_HOOKS_PKG_PARENT) not in sys.path:
         sys.path.insert(0, str(_HOOKS_PKG_PARENT))
 

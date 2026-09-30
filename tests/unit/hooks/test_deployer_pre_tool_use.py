@@ -1,4 +1,4 @@
-"""Testes unit do hook ``.opencode/hooks/deployer/pre_tool_use.py`` (PLAN_SPRINT18 / Task 2.2).
+"""Testes unit do hook ``.claude/hooks/deployer/pre_tool_use.py`` (PLAN_SPRINT18 / Task 2.2).
 
 Cobre:
 
@@ -6,7 +6,7 @@ Cobre:
 - Allow list para npm publish/login/dist-tag/view.
 - Allow list para gh release create/delete/upload.
 - Allow list para npx dfe-agent *.
-- Allow list para escape hatch `npx tsx .opencode/rag/embed.ts --file`.
+- Allow list para escape hatch `npx tsx .claude/rag/embed.ts --file`.
 - Block list para Write/Edit/MultiEdit/NotebookEdit (defesa em profundidade).
 - Block list para rm -rf, sed -i, redirecionamento `>`.
 - Block list para curl, wget, pip install.
@@ -31,7 +31,7 @@ import pytest
 
 PROJECT_ROOT: Path = Path(__file__).resolve().parents[3]
 HOOK_SCRIPT: Path = (
-    PROJECT_ROOT / ".opencode" / "hooks" / "deployer" / "pre_tool_use.py"
+    PROJECT_ROOT / ".claude" / "hooks" / "deployer" / "pre_tool_use.py"
 )
 LOG_PATH: Path = PROJECT_ROOT / "storage" / "agent_hooks.log"
 
@@ -207,8 +207,8 @@ def test_allows_gh_release_commands(cmd: str) -> None:
         "npx dfe-agent update",
         "npx dfe-agent status",
         "npx dfe-agent query 'O que e a NF-e?'",
-        "npx --prefix .opencode tsx .opencode/rag/embed.ts --file .opencode/rag/knowledge/2026-08-27-dev-feature-deployer-agent.md",
-        "npx --prefix .opencode tsx .opencode/rag/search.ts -q 'deployer git push' -a deployer --top-k 5",
+        "npx tsx .claude/rag/embed.ts --file .claude/rag/knowledge/2026-08-27-dev-feature-deployer-agent.md",
+        "npx tsx .claude/rag/search.ts -q 'deployer git push' -a deployer --top-k 5",
     ],
     ids=[
         "npx_dfe_agent_install",

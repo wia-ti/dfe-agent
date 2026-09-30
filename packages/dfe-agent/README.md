@@ -2,7 +2,7 @@
 
 > **Status: MVP em desenvolvimento (Sprint 14)** — publicacao inicial prevista apos Fase F.
 
-Agente opencode + base RAG com documentacao fiscal eletronica oficial brasileira (NF-e, NFC-e, CT-e, MDF-e, SPED). Para outros projetos opencode que querem responder perguntas sobre DFes sem clonar o DFe-Agent inteiro.
+Subagent Claude Code + base RAG com documentacao fiscal eletronica oficial brasileira (NF-e, NFC-e, CT-e, MDF-e, SPED). Para outros projetos Claude Code que querem responder perguntas sobre DFes sem clonar o DFe-Agent inteiro.
 
 ## What is this?
 
@@ -20,7 +20,7 @@ Agente opencode + base RAG com documentacao fiscal eletronica oficial brasileira
   - aplicar guarda de `NO_EVIDENCE_MESSAGE`
 
 - **CLI Node** (`dist/bin/dfe-agent.js`) — 4 subcommands:
-  - `install` — copia agent + skill para `.opencode/` do projeto consumidor
+  - `install` — copia agent + skill para `.claude/` do projeto consumidor
   - `update` — baixa base RAG do GitHub Releases do DFe-Agent
   - `query "<pergunta>"` — busca semantica/FTS5/hibrida, retorna JSON
   - `status` — info da base instalada (path, mtime, doc count, schema)
@@ -31,20 +31,20 @@ Agente opencode + base RAG com documentacao fiscal eletronica oficial brasileira
 
 ```bash
 npm install @wiati/dfe-agent
-npx dfe-agent install   # copia agent + skill para .opencode/ (opt-in, nao automatico)
+npx dfe-agent install   # copia agent + skill para .claude/ (opt-in, nao automatico)
 npx dfe-agent update    # baixa base RAG (~30MB)
 ```
 
-> **Por que `install` e' opt-in?** Decisao D8: evita sobrescrever `.opencode/agent/dfe-agent.md` custom do usuario sem aviso. Para auto-setup, use `npx dfe-agent install --auto-setup`.
+> **Por que `install` e' opt-in?** Decisao D8: evita sobrescrever `.claude/agents/dfe-agent.md` custom do usuario sem aviso. Para auto-setup, use `npx dfe-agent install --auto-setup`.
 
 ## Quick start
 
-### Via opencode TUI (integrado)
+### Via Claude Code (integrado)
 
 ```bash
 # apos install + update:
-opencode run
-# no TUI: Tab -> selecione @dfe-agent -> faca pergunta em linguagem natural
+claude
+# peca: "use o subagent dfe-agent para responder: <pergunta>" (ou veja /agents)
 ```
 
 O agent invocara' a skill `dfe-fiscal`, que rodara' `dfe-agent query "<pergunta>"`, formatara' a resposta em linguagem natural e adicionara' o bloco `Fontes:` no final.
@@ -112,8 +112,8 @@ Util para:
 
 A fonte canonica deste agent vive no **DFe-Agent repo**:
 
-- `.opencode/agent/dfe-agent.md`
-- `.opencode/skills/dfe-fiscal/SKILL.md`
+- `.claude/agents/dfe-agent.md`
+- `.claude/skills/dfe-fiscal/SKILL.md`
 
 Para distribuir atualizacoes:
 
@@ -162,7 +162,7 @@ packages/dfe-agent/
 │   ├── index.ts              # entry point (VERSION, reexports)
 │   ├── cli.ts                # CLI parser (parseArgs + 4 subcommands)
 │   ├── commands/
-│   │   ├── install.ts        # copia agent + skill para .opencode/
+│   │   ├── install.ts        # copia agent + skill para .claude/
 │   │   ├── update.ts         # download + SHA verify + atomic extract
 │   │   ├── query.ts          # delega para queryEngine.search()
 │   │   └── status.ts         # info da base

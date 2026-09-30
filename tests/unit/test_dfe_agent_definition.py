@@ -1,11 +1,13 @@
-"""Validacao estrutural do agente dfe-agent."""
+"""Validacao estrutural do subagent ``dfe-agent`` (Claude Code)."""
 from __future__ import annotations
-import re
+
 from pathlib import Path
+from typing import Any
 
 import pytest
+import yaml
 
-AGENT_FILE: Path = Path(__file__).resolve().parents[2] / ".opencode" / "agent" / "dfe-agent.md"
+AGENT_FILE: Path = Path(__file__).resolve().parents[2] / ".claude" / "agents" / "dfe-agent.md"
 
 
 @pytest.fixture(scope="module")
@@ -15,48 +17,35 @@ def agent_text() -> str:
 
 
 @pytest.fixture(scope="module")
-def frontmatter(agent_text: str) -> str:
+def frontmatter(agent_text: str) -> dict[str, Any]:
     parts = agent_text.split("---", 2)
     assert len(parts) >= 3, "Arquivo deve ter frontmatter YAML entre ---"
-    return parts[1]
+    data = yaml.safe_load(parts[1])
+    assert isinstance(data, dict)
+    return data
 
 
-def test_agent_file_exists():
+def test_agent_file_exists() -> None:
     assert AGENT_FILE.exists()
 
 
-def test_frontmatter_contains_name_dfe_agent(frontmatter: str):
-    assert re.search(r"^name:\s*dfe-agent\s*$", frontmatter, re.MULTILINE), \
-        f"frontmatter deve conter 'name: dfe-agent'. Recebido:\n{frontmatter}"
+def test_frontmatter_has_name_and_description(frontmatter: dict[str, Any]) -> None:
+    assert frontmatter.get("name") == "dfe-agent"
+    assert str(frontmatter.get("description", "")).strip()
 
 
-def test_frontmatter_contains_model_minimax(frontmatter: str):
-    """Frontmatter deve declarar ``model: PROVIDER/MiniMax-M3`` (PLAN_SPRINT4 D.2).
-
-    Provider real do MiniMax-M3 neste usuario ainda nao foi
-    confirmado; placeholder explicito impede erro de validacao
-    do opencode ate decisao formal (ver AGENTS.md "Decisoes pendentes").
-    """
-    assert re.search(
-        r"^model:\s*\S+/\S+\s*$", frontmatter, re.MULTILINE
-    ), f"frontmatter deve conter 'model: PROVIDER/MiniMax-M3'. Recebido:\n{frontmatter}"
+def test_frontmatter_preloads_dfe_fiscal_skill(frontmatter: dict[str, Any]) -> None:
+    assert "dfe-fiscal" in (frontmatter.get("skills") or [])
 
 
-def test_frontmatter_yaml_is_valid(agent_text: str):
-    import yaml
-    parts = agent_text.split("---", 2)
-    yaml.safe_load(parts[1])  # nao levanta excecao
+def test_frontmatter_has_no_web_tools(frontmatter: dict[str, Any]) -> None:
+    """Sem WebFetch/WebSearch: toda resposta vem da base RAG (ALLOWED_DOMAINS)."""
+    tools = str(frontmatter.get("tools", ""))
+    assert tools, "dfe-agent deve declarar `tools:` explicito."
+    assert "WebFetch" not in tools and "WebSearch" not in tools
 
 
-def test_body_contains_required_strings(agent_text: str):
-    """Corpo deve conter literais canonicos.
-
-    Sprint 11 D.4 removeu a regra "Sempre executar ``python -m
-    src.collector --once`` antes de qualquer resposta" do
-    ``dfe-agent.md`` (contradizia ``dev/pre_tool_use.py``). A
-    skill ``dfe-fiscal`` continua sendo a fonte canonica do
-    fluxo de varredura (Passo 2).
-    """
-    required = ["dfe-fiscal", "Nao encontrei base para responder", "Fontes:"]
-    for s in required:
+def test_body_contains_required_strings(agent_text: str) -> None:
+    """Corpo deve conter literais canonicos (skill, NO_EVIDENCE_MESSAGE, Fontes)."""
+    for s in ("dfe-fiscal", "Nao encontrei base para responder", "Fontes:"):
         assert s in agent_text, f"Corpo deve conter '{s}'"

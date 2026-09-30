@@ -1,4 +1,4 @@
-"""Testes do helper ``.opencode/hooks/_lib/learning.py`` (PLAN_SPRINT8 B.2 + Sprint 12 B12.1).
+"""Testes do helper ``.claude/hooks/_lib/learning.py`` (PLAN_SPRINT8 B.2 + Sprint 12 B12.1).
 
 Cobre:
 
@@ -8,12 +8,12 @@ Cobre:
   ``(agent_slug, session_id)`` em vez de apenas ``agent_slug``.
 - ``spawn_summarize_then_embed(transcript_path, agent_slug, session_id)``:
   invoca ``summarize.ts --stdout`` via subprocess sincronico; grava .md em
-  ``.opencode/rag/knowledge/``; spawn ``embed.ts --file <md>`` em Popen detached.
+  ``.claude/rag/knowledge/``; spawn ``embed.ts --file <md>`` em Popen detached.
 - Comportamento em caminhos invalidos / transcript inexistente: skip + log.
 
 > **Sprint 12 (B12.1)**: helper movido de ``.claude/hooks/_lib/`` para
-> ``.opencode/hooks/_lib/``; knowledge/scripts migraram para
-> ``.opencode/rag/{knowledge,}``.
+> ``.claude/hooks/_lib/``; knowledge/scripts migraram para
+> ``.claude/rag/{knowledge,}``.
 """
 from __future__ import annotations
 
@@ -30,8 +30,8 @@ PROJECT_ROOT: Path = Path(__file__).resolve().parents[3]
 
 
 def _load_learning_module() -> object:
-    """Carrega ``.opencode/hooks/_lib/learning.py`` como modulo isolado."""
-    script = PROJECT_ROOT / ".opencode" / "hooks" / "_lib" / "learning.py"
+    """Carrega ``.claude/hooks/_lib/learning.py`` como modulo isolado."""
+    script = PROJECT_ROOT / ".claude" / "hooks" / "_lib" / "learning.py"
     spec = importlib.util.spec_from_file_location("learning_for_test", script)
     assert spec is not None and spec.loader is not None
     mod = importlib.util.module_from_spec(spec)
@@ -43,11 +43,11 @@ def _load_learning_module() -> object:
 def learning(monkeypatch: pytest.MonkeyPatch, tmp_path: Path):
     """Carrega ``learning.py`` com ``PROJECT_ROOT`` apontando para ``tmp_path``.
 
-    Cria tambem a estrutura ``.opencode/rag/knowledge/`` esperada pelo helper.
+    Cria tambem a estrutura ``.claude/rag/knowledge/`` esperada pelo helper.
     """
     mod = _load_learning_module()
     monkeypatch.setattr(mod, "PROJECT_ROOT", tmp_path)
-    knowledge = tmp_path / ".opencode" / "rag" / "knowledge"
+    knowledge = tmp_path / ".claude" / "rag" / "knowledge"
     knowledge.mkdir(parents=True, exist_ok=True)
     return mod
 
@@ -56,7 +56,7 @@ def test_marker_path_normalizes_special_chars(learning: object) -> None:
     """Slug com caracteres nao-seguros vira nome de arquivo ASCII previsivel."""
     marker = learning.marker_path("Backend Engineer", "sess/abc 123")
 
-    assert marker.parent == learning.PROJECT_ROOT / ".opencode" / "rag" / "knowledge"
+    assert marker.parent == learning.PROJECT_ROOT / ".claude" / "rag" / "knowledge"
     assert "/" not in marker.name
     assert "\\" not in marker.name
     assert " " not in marker.name
@@ -184,7 +184,7 @@ def test_spawn_writes_md_to_knowledge_dir(
 
     learning.spawn_summarize_then_embed(transcript, "backend-engineer", "sess-005")
 
-    knowledge = learning.PROJECT_ROOT / ".opencode" / "rag" / "knowledge"
+    knowledge = learning.PROJECT_ROOT / ".claude" / "rag" / "knowledge"
     md_files = list(knowledge.glob("*.md"))
     assert any(f.name.startswith("_pending-") for f in md_files), (
         f"Esperava .md em {knowledge}; obtido {[f.name for f in md_files]}"
@@ -328,22 +328,22 @@ def test_project_root_resolves_to_dfe_agent_root() -> None:
     Consequencia: ``_knowledge_dir()`` virava ``.claude/.claude/knowledge/``
     e ``LOG_PATH`` virava ``.claude/storage/agent_hooks.log`` (artefatos
     reais visiveis no disco ate 2026-08-26). Sprint 12 unificou em
-    ``.opencode/hooks/_lib/`` (mesma profundidade 3).
+    ``.claude/hooks/_lib/`` (mesma profundidade 3).
     """
     mod = _load_learning_module()
     # PROJECT_ROOT deve terminar com o diretorio raiz do DFe-Agent.
     # O nome exato do diretorio raiz varia (workspace do usuario);
-    # o teste valida que o caminho NAO termina com ".claude" ou ".opencode".
+    # o teste valida que o caminho NAO termina com ".claude" ou ".claude".
     assert not mod.PROJECT_ROOT.name == ".claude", (
         f"PROJECT_ROOT nao deve ser .claude/ (off-by-one). "
         f"Obtido: {mod.PROJECT_ROOT}"
     )
-    assert not mod.PROJECT_ROOT.name == ".opencode", (
+    assert not mod.PROJECT_ROOT.name == ".claude", (
         f"PROJECT_ROOT nao deve ser .opencode/ (off-by-one). "
         f"Obtido: {mod.PROJECT_ROOT}"
     )
-    # Tambem: PROJECT_ROOT deve ser ancestor de ".opencode/hooks/_lib/learning.py".
-    learning_file = PROJECT_ROOT / ".opencode" / "hooks" / "_lib" / "learning.py"
+    # Tambem: PROJECT_ROOT deve ser ancestor de ".claude/hooks/_lib/learning.py".
+    learning_file = PROJECT_ROOT / ".claude" / "hooks" / "_lib" / "learning.py"
     assert learning_file.is_relative_to(mod.PROJECT_ROOT), (
         f"PROJECT_ROOT={mod.PROJECT_ROOT} deve ser ancestor de "
         f"{learning_file}"
@@ -351,18 +351,18 @@ def test_project_root_resolves_to_dfe_agent_root() -> None:
 
 
 def test_knowledge_dir_is_canonical() -> None:
-    """_knowledge_dir() deve retornar ``<PROJECT_ROOT>/.opencode/rag/knowledge``.
+    """_knowledge_dir() deve retornar ``<PROJECT_ROOT>/.claude/rag/knowledge``.
 
     Anti-regressao contra o bug off-by-one que criava
     ``.claude/.claude/knowledge/`` no disco. Sprint 12 (B12.1) unificou
-    em ``.opencode/rag/knowledge``.
+    em ``.claude/rag/knowledge``.
     """
     mod = _load_learning_module()
     knowledge = mod._knowledge_dir()
-    expected = mod.PROJECT_ROOT / ".opencode" / "rag" / "knowledge"
+    expected = mod.PROJECT_ROOT / ".claude" / "rag" / "knowledge"
     assert knowledge == expected, (
         f"_knowledge_dir()={knowledge} deve ser igual a "
-        f"PROJECT_ROOT/.opencode/rag/knowledge={expected}"
+        f"PROJECT_ROOT/.claude/rag/knowledge={expected}"
     )
 
 
@@ -371,7 +371,7 @@ def test_log_path_is_storage_root() -> None:
 
     Path raiz NAO muda na unificacao Sprint 12: o log e' compartilhado
     com o plugin TS e ja' estava em ``<root>/storage/`` (permanece fora
-    de ``.opencode/``).
+    de ``.claude/``).
     """
     mod = _load_learning_module()
     expected = mod.PROJECT_ROOT / "storage" / "agent_hooks.log"

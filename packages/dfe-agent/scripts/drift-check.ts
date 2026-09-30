@@ -1,5 +1,5 @@
 /**
- * drift-check.ts — verifica que packages/dfe-agent/dist/* == .opencode/* fonte
+ * drift-check.ts — verifica que packages/dfe-agent/dist/* == .claude/* fonte
  * canonica. CI gate (B.2): PR com drift e' bloqueado.
  *
  * Uso:
@@ -25,12 +25,12 @@ interface DriftPair {
 
 const PAIRS: DriftPair[] = [
   {
-    src: resolve(DFE_ROOT, ".opencode/agent/dfe-agent.md"),
+    src: resolve(DFE_ROOT, ".claude/agents/dfe-agent.md"),
     dst: resolve(PKG_ROOT, "dist/agent.md"),
     label: "agent.md",
   },
   {
-    src: resolve(DFE_ROOT, ".opencode/skills/dfe-fiscal/SKILL.md"),
+    src: resolve(DFE_ROOT, ".claude/skills/dfe-fiscal/SKILL.md"),
     dst: resolve(PKG_ROOT, "dist/skill/dfe-fiscal/SKILL.md"),
     label: "skill/dfe-fiscal/SKILL.md",
   },

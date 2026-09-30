@@ -58,7 +58,7 @@ def _build_arg_parser() -> argparse.ArgumentParser:
 def main(argv: list[str] | None = None) -> int:
     """Instancia componentes, executa ``ingest_pending`` e imprime resumo."""
     # Lazy import (mesma razao do query.__main__: nao regredir testes que
-    # importam o modulo sem ``.opencode`` em PYTHONPATH).
+    # importam o modulo sem ``.claude`` em PYTHONPATH).
     from src.utils.http_guard_bootstrap import install_guard_once
 
     install_guard_once()

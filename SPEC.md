@@ -40,9 +40,9 @@ Este projeto automatiza esse fluxo com um agente que coleta e armazena essa docu
 
 | Módulo | Responsabilidade |
 |---|---|
-| **Agente opencode** | Orquestrador principal. Recebe a pergunta do usuário, decide o fluxo (verificar atualidade → consultar RAG → responder) e aplica guardrails. |
+| **Agente (Claude Code)** | Orquestrador principal. Recebe a pergunta do usuário, decide o fluxo (verificar atualidade → consultar RAG → responder) e aplica guardrails. |
 | **Skill dedicada** | Skill invocada pelo agente; encapsula toda a lógica do domínio fiscal: coleta, ingestão e consulta. É o "skill responsável por este trabalho". |
-| **Hooks** | Guardrails do opencode executados antes/depois de ações sensíveis (ex.: bloquear acesso a domínios fora da lista permitida, exigir confirmação antes de deletar dados, registrar tentativas de scraping). |
+| **Hooks** | Guardrails do Claude Code executados antes/depois de ações sensíveis (ex.: bloquear acesso a domínios fora da lista permitida, exigir confirmação antes de deletar dados, registrar tentativas de scraping). |
 | **Rules** | Regras de comportamento do agente (ex.: "nunca inventar informação", "toda resposta deve citar fonte", "espaçar requisições aos sites"). |
 | **Coletor/Scraper** | Acessa os portais oficiais, identifica novos documentos ainda não ingeridos e baixa PDFs/HTML. Respeita intervalos entre requisições. |
 | **Parser/Extrator** | Converte PDFs e HTML em texto limpo, pronto para chunking. |
@@ -52,14 +52,14 @@ Este projeto automatiza esse fluxo com um agente que coleta e armazena essa docu
 
 ## Stack
 
-- **Plataforma de agente**: opencode (executado localmente).
-- **Modelo LLM**: MiniMax-M3 (pago, fornecido pela plataforma opencode).
+- **Plataforma de agente**: Claude Code (executado localmente). Ate' a Sprint 18 era opencode.
+- **Modelo LLM**: modelo Claude configurado na sessao do Claude Code (antes: MiniMax-M3 via opencode).
 - **Base RAG**: SQLite com extensão de busca vetorial (ex.: `sqlite-vss` ou `sqlite-vec` — **decisão em aberto** sobre a extensão exata).
 - **Execução**: 100% local, na máquina do usuário.
 - **Linguagem/scripting**: a definir conforme implementação da skill (provavelmente Python, por afinidade com ecossistema de PDF/scraping — **decisão em aberto**).
 - **PDF/HTML parsing**: a definir na implementação (ex.: `pypdf`, `pdfplumber`, `BeautifulSoup`) — **decisão em aberto**.
 
-> **Sprint 14+**: o agente `dfe-agent` e' tambem distribuido como pacote npm `@dfe-agent/dfe-agent` para outros projetos opencode consumirem a base RAG sem clonar o DFe-Agent inteiro. Detalhes em `PLAN_SPRINT14.md` (Apendices A-C) e `AGENTS.md > Distribuicao como pacote npm`. Pipeline Python continua canonico para o proprio DFe-Agent; consumidores npm recebem base pre-buildada via GitHub Releases.
+> **Sprint 14+**: o agente `dfe-agent` e' tambem distribuido como pacote npm `@dfe-agent/dfe-agent` para outros projetos Claude Code consumirem a base RAG sem clonar o DFe-Agent inteiro. Detalhes em `PLAN_SPRINT14.md` (Apendices A-C) e `AGENTS.md > Distribuicao como pacote npm`. Pipeline Python continua canonico para o proprio DFe-Agent; consumidores npm recebem base pre-buildada via GitHub Releases.
 
 ## Constraints técnicas
 
@@ -67,7 +67,7 @@ Este projeto automatiza esse fluxo com um agente que coleta e armazena essa docu
 - **Volume arbitrário**: a quantidade de PDFs por período é definida unilateralmente pela Fazenda; o sistema deve absorver crescimentos sem mudança de arquitetura.
 - **Sem requisito offline**: a coleta depende de conexão à internet; respostas podem usar a base local já populada.
 - **Sem restrições de privacidade**: não há dados sensíveis nem requisitos de sigilo.
-- **Modelo pago**: MiniMax-M3 é uma API paga; o custo é aceito.
+- **Modelo pago**: o modelo Claude usado pelo Claude Code é pago; o custo é aceito.
 - **Fontes oficiais exclusivamente**: apenas os domínios listados em "Módulos" podem ser acessados pelo coletor (reforçado por hook de guardrail).
 
 ### Sites oficiais a monitorar

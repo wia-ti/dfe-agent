@@ -17,8 +17,8 @@ Cada hook deve:
    learning.
 
 > **Sprint 12 (B12.1)**: hook movido de ``.claude/hooks/dev/`` para
-> ``.opencode/hooks/dev/``. Knowledge/scripts migraram para
-> ``.opencode/rag/{knowledge,}``.
+> ``.claude/hooks/dev/``. Knowledge/scripts migraram para
+> ``.claude/rag/{knowledge,}``.
 """
 from __future__ import annotations
 
@@ -35,8 +35,8 @@ AGENT_DIR: str = "dev"
 
 
 def _load_hook_module(hook_name: str, module_name: str):
-    """Carrega ``.opencode/hooks/dev/<hook_name>.py`` como modulo isolado."""
-    script = PROJECT_ROOT / ".opencode" / "hooks" / AGENT_DIR / hook_name
+    """Carrega ``.claude/hooks/dev/<hook_name>.py`` como modulo isolado."""
+    script = PROJECT_ROOT / ".claude" / "hooks" / AGENT_DIR / hook_name
     spec = importlib.util.spec_from_file_location(module_name, script)
     assert spec is not None and spec.loader is not None
     mod = importlib.util.module_from_spec(spec)
@@ -73,7 +73,7 @@ def test_dev_stop_runs_learning_after_pytest_passes(
     mod = _load_hook_module("stop.py", "dev_stop_pass")
 
     monkeypatch.setattr(mod.learning, "PROJECT_ROOT", tmp_path)
-    (tmp_path / ".opencode" / "rag" / "knowledge").mkdir(parents=True, exist_ok=True)
+    (tmp_path / ".claude" / "rag" / "knowledge").mkdir(parents=True, exist_ok=True)
 
     monkeypatch.setattr(mod, "read_payload", lambda: {
         "session_id": "sess-pass-1",
@@ -111,7 +111,7 @@ def test_dev_stop_blocks_when_pytest_fails(
     """pytest rc != 0 => learning NAO e' chamado (gate de qualidade)."""
     mod = _load_hook_module("stop.py", "dev_stop_fail")
     monkeypatch.setattr(mod.learning, "PROJECT_ROOT", tmp_path)
-    (tmp_path / ".opencode" / "rag" / "knowledge").mkdir(parents=True, exist_ok=True)
+    (tmp_path / ".claude" / "rag" / "knowledge").mkdir(parents=True, exist_ok=True)
 
     monkeypatch.setattr(mod, "read_payload", lambda: {
         "session_id": "sess-fail-1",
@@ -148,7 +148,7 @@ def test_dev_stop_skips_learning_when_no_edits(
     """payload sem writes (>0) => learning NAO e' chamado (escopo = so' impl)."""
     mod = _load_hook_module("stop.py", "dev_stop_no_edits")
     monkeypatch.setattr(mod.learning, "PROJECT_ROOT", tmp_path)
-    (tmp_path / ".opencode" / "rag" / "knowledge").mkdir(parents=True, exist_ok=True)
+    (tmp_path / ".claude" / "rag" / "knowledge").mkdir(parents=True, exist_ok=True)
 
     monkeypatch.setattr(mod, "read_payload", lambda: {
         "session_id": "sess-no-edits",
@@ -182,7 +182,7 @@ def test_dev_stop_skips_learning_when_writes_field_missing(
     """payload sem campo tool_writes_count => learning NAO e' chamado."""
     mod = _load_hook_module("stop.py", "dev_stop_no_writes_field")
     monkeypatch.setattr(mod.learning, "PROJECT_ROOT", tmp_path)
-    (tmp_path / ".opencode" / "rag" / "knowledge").mkdir(parents=True, exist_ok=True)
+    (tmp_path / ".claude" / "rag" / "knowledge").mkdir(parents=True, exist_ok=True)
 
     monkeypatch.setattr(mod, "read_payload", lambda: {
         "session_id": "sess-no-field",
@@ -222,7 +222,7 @@ def test_stop_idempotent_per_session(
     """
     mod = _load_hook_module("stop.py", "dev_stop_idem")
     monkeypatch.setattr(mod.learning, "PROJECT_ROOT", tmp_path)
-    (tmp_path / ".opencode" / "rag" / "knowledge").mkdir(parents=True, exist_ok=True)
+    (tmp_path / ".claude" / "rag" / "knowledge").mkdir(parents=True, exist_ok=True)
 
     summarize_calls: list[int] = []
 
@@ -261,7 +261,7 @@ def test_stop_different_sessions_each_call(
     """Sessoes diferentes do mesmo agent NAO sao colapsadas."""
     mod = _load_hook_module("stop.py", "dev_stop_distinct")
     monkeypatch.setattr(mod.learning, "PROJECT_ROOT", tmp_path)
-    (tmp_path / ".opencode" / "rag" / "knowledge").mkdir(parents=True, exist_ok=True)
+    (tmp_path / ".claude" / "rag" / "knowledge").mkdir(parents=True, exist_ok=True)
 
     learning_calls: list[tuple] = []
 

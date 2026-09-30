@@ -2,7 +2,7 @@
 #
 # Valida o fluxo canonico de consumo:
 #   1. scratch project (sem Python, sem assets pre-instalados)
-#   2. `dfe-agent install` copia agent + skill para .opencode/
+#   2. `dfe-agent install` copia agent + skill para .claude/
 #   3. `dfe-agent status` reporta versao + packageName
 #
 # @see PLAN_SPRINT14.md Task F.2
@@ -42,16 +42,16 @@ try {
     & npx --no-install dfe-agent install 2>&1 | Out-Null
 
     # Valida arquivos copiados
-    Write-Host "[e2e] validando .opencode/"
-    $agentMd = Join-Path $SCRATCH ".opencode\agent\dfe-agent.md"
-    $skillMd = Join-Path $SCRATCH ".opencode\skills\dfe-fiscal\SKILL.md"
+    Write-Host "[e2e] validando .claude/"
+    $agentMd = Join-Path $SCRATCH ".claude\agents\dfe-agent.md"
+    $skillMd = Join-Path $SCRATCH ".claude\skills\dfe-fiscal\SKILL.md"
     if (-not (Test-Path -LiteralPath $agentMd)) {
-        throw "FAIL: .opencode/agent/dfe-agent.md missing"
+        throw "FAIL: .claude/agents/dfe-agent.md missing"
     }
     if (-not (Test-Path -LiteralPath $skillMd)) {
-        throw "FAIL: .opencode/skills/dfe-fiscal/SKILL.md missing"
+        throw "FAIL: .claude/skills/dfe-fiscal/SKILL.md missing"
     }
-    Write-Host "[e2e] .opencode/ OK"
+    Write-Host "[e2e] .claude/ OK"
 
     # Status
     Write-Host "[e2e] dfe-agent status"

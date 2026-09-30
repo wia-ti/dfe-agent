@@ -19,7 +19,7 @@ import pytest
 
 PROJECT_ROOT: Path = Path(__file__).resolve().parent.parent
 SRC_PATH: Path = PROJECT_ROOT / "src"
-HOOKS_PKG_PARENT: Path = PROJECT_ROOT / ".opencode"
+HOOKS_PKG_PARENT: Path = PROJECT_ROOT / ".claude"
 
 from src.utils.syspath_bootstrap import ensure_sys_path
 
@@ -28,7 +28,7 @@ ensure_sys_path()
 
 @pytest.fixture(autouse=True)
 def _ensure_hooks_on_path() -> None:
-    """Garante que ``.opencode/`` esteja em ``sys.path`` durante toda a suite.
+    """Garante que ``.claude/`` esteja em ``sys.path`` durante toda a suite.
 
     Necessario para que ``src.collector.{downloader,portal_index}`` consiga
     importar ``hooks.domain_guard`` sem precisar de stub fail-open.

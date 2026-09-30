@@ -1,6 +1,6 @@
 """Dispatcher de hooks do Claude Code para os scripts Python por agent.
 
-Porta do antigo plugin OpenCode ``.opencode/plugin/agent-hooks.ts``. O
+Porta do antigo plugin OpenCode ``agent-hooks.ts``. O
 ``.claude/settings.json`` chama este script em cada evento
 (``pre``/``post``/``stop``/``subagent-stop``) e ele decide, pelo agent
 ativo, qual script de ``.claude/hooks/<agent>/`` executar.

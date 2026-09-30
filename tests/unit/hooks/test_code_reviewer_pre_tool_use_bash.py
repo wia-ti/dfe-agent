@@ -1,4 +1,4 @@
-"""Testes unit do hook ``.opencode/hooks/code-reviewer/pre_tool_use_bash.py`` (PLAN_SPRINT9 / I9.3 + Sprint 12 B12.1).
+"""Testes unit do hook ``.claude/hooks/code-reviewer/pre_tool_use_bash.py`` (PLAN_SPRINT9 / I9.3 + Sprint 12 B12.1).
 
 Cobre os 9 BLOCK patterns (redirecionamento, sed -i, rm, git
 commit/push, pip install, execucao do coletor/indexador/ragctl,
@@ -10,8 +10,8 @@ Tambem cobre o gate final: comando que nao casa nenhum ALLOW e nao
 cai em BLOCK tambem e' bloqueado (modo restritivo).
 
 > **Sprint 12 (B12.1)**: hook movido de ``.claude/hooks/code-reviewer/``
-> para ``.opencode/hooks/code-reviewer/``. O path do RAG meta-cognitivo
-> migrou de ``.claude/rag.db`` para ``.opencode/rag/rag.db``.
+> para ``.claude/hooks/code-reviewer/``. O path do RAG meta-cognitivo
+> migrou de ``.claude/rag.db`` para ``.claude/rag/rag.db``.
 """
 from __future__ import annotations
 
@@ -25,7 +25,7 @@ import pytest
 
 PROJECT_ROOT: Path = Path(__file__).resolve().parents[3]
 HOOK_SCRIPT: Path = (
-    PROJECT_ROOT / ".opencode" / "hooks" / "code-reviewer" / "pre_tool_use_bash.py"
+    PROJECT_ROOT / ".claude" / "hooks" / "code-reviewer" / "pre_tool_use_bash.py"
 )
 
 
@@ -98,13 +98,13 @@ def test_blocks_sqlite_db_path_in_command() -> None:
 
 
 def test_blocks_opencode_rag_db_path() -> None:
-    """Acesso direto a .opencode/rag/rag.db deve ser bloqueado (RAG meta-cognitivo).
+    """Acesso direto a .claude/rag/rag.db deve ser bloqueado (RAG meta-cognitivo).
 
     Sprint 12 (B12.4) migrou o DB do RAG meta de ``.claude/rag.db`` para
-    ``.opencode/rag/rag.db``. O hook continua bloqueando acesso direto
+    ``.claude/rag/rag.db``. O hook continua bloqueando acesso direto
     por SQLite CLI.
     """
-    proc = _run_hook("sqlite3 .opencode/rag/rag.db .tables")
+    proc = _run_hook("sqlite3 .claude/rag/rag.db .tables")
     assert proc.returncode == 2
 
 

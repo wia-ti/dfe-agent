@@ -35,7 +35,7 @@ def disabled_guardrail(monkeypatch: pytest.MonkeyPatch) -> Generator[None, None,
     """Desativa o guardrail para o teste: limpa sys.modules + remove path.
 
     A flag ``DFE_DISABLE_HOOKS_BOOTSTRAP`` impede que
-    ``src/collector/__init__.py`` adicione ``.opencode/`` de volta
+    ``src/collector/__init__.py`` adicione ``.claude/`` de volta
     durante o ``importlib.import_module``.
 
     Garante restauracao completa de ``sys.path`` e ``sys.modules`` apos
@@ -75,7 +75,7 @@ def disabled_guardrail(monkeypatch: pytest.MonkeyPatch) -> Generator[None, None,
         if _is_guardrail_dependent(name):
             sys.modules.pop(name, None)
 
-    sys.path[:] = [p for p in sys.path if ".opencode" not in p]
+    sys.path[:] = [p for p in sys.path if ".claude" not in p]
 
     try:
         yield
@@ -96,7 +96,7 @@ def test_collector_raises_when_domain_guard_missing(
 
     Estrategia:
         - Limpa ``sys.modules`` dos modulos do guardrail.
-        - Remove o path ``.opencode`` para forcar ImportError.
+        - Remove o path ``.claude`` para forcar ImportError.
         - Tenta importar o coletor; espera RuntimeError com substring
           ``"domain_guard indisponivel"``.
     """

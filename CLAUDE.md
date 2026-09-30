@@ -80,7 +80,7 @@ Modos de busca: semantica (default, cosseno + dedup + boost temporal), `--hybrid
 ## Nunca fazer
 
 - Inventar informacao: toda afirmacao do agente tem fonte na base RAG; sem base, responder `NO_EVIDENCE_MESSAGE` ("Nao encontrei base para responder", definido em `src/query/context_builder.py`).
-- Acessar dominios fora de `ALLOWED_DOMAINS` (guard `src/utils/http_guard.py` + `.opencode/hooks/domain_guard.py`).
+- Acessar dominios fora de `ALLOWED_DOMAINS` (guard `src/utils/http_guard.py` + `.claude/hooks/domain_guard.py`).
 - Metralhar portais: respeitar `Throttler`; sem proxy rotativo, CAPTCHA solving ou contorno de anti-bot.
 - Emitir documento fiscal, substituir contador ou dar opiniao legal/contabil.
 - Reprocessar documento `ingerido` (idempotencia por `content_hash`).
@@ -89,4 +89,4 @@ Modos de busca: semantica (default, cosseno + dedup + boost temporal), `--hybrid
 
 ## Distribuicao npm
 
-`packages/dfe-agent/` distribui o agente para consumidores **OpenCode** (`npx dfe-agent install` copia agent + skill para `.opencode/` do consumidor). As fontes do sync ainda sao `.opencode/agent/dfe-agent.md` e `.opencode/skills/dfe-fiscal/` (`packages/dfe-agent/scripts/sync-assets.ts`); mudar isso altera o produto publicado.
+`packages/dfe-agent/` distribui o subagent para projetos **Claude Code** (`npx dfe-agent install` copia agent + skill para `.claude/agents/` e `.claude/skills/` do consumidor). As fontes do sync sao `.claude/agents/dfe-agent.md` e `.claude/skills/dfe-fiscal/` (`packages/dfe-agent/scripts/sync-assets.ts`): depois de editar, rode `cd packages/dfe-agent && npm run sync && npm run drift-check`.

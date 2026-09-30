@@ -11,7 +11,7 @@ def get_logger(name: str, level: int = logging.INFO) -> logging.Logger:
     """Retorna um ``logging.Logger`` configurado com ``StreamHandler`` e formatador padrao.
 
     O logger retornado NAO propaga para o root logger (propagate=False) para
-    evitar mensagens duplicadas quando o host (ex.: pytest, opencode) ja
+    evitar mensagens duplicadas quando o host (ex.: pytest, Claude Code) ja
     configura handlers no root. Idempotente: chamadas repetidas com o mesmo
     ``name`` nao adicionam handlers duplicados.
     """

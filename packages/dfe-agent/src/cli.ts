@@ -2,7 +2,7 @@
  * cli.ts — entry point CLI para @wiati/dfe-agent.
  *
  * Subcommands:
- *   install   copia agent + skill para .opencode/ do projeto
+ *   install   copia agent + skill para .claude/ do projeto
  *   update    baixa base RAG do GitHub Releases
  *   query     busca semantica / FTS5 / hibrida na base
  *   status    info da base instalada (path, mtime, doc count)
@@ -19,10 +19,10 @@
 import { parseArgs } from "node:util";
 import { fileURLToPath } from "node:url";
 
-const USAGE = `dfe-agent — agente opencode + base RAG de documentacao fiscal eletronica
+const USAGE = `dfe-agent — subagent Claude Code + base RAG de documentacao fiscal eletronica
 
 Uso:
-  dfe-agent install [--auto-setup]   copia agent + skill para .opencode/
+  dfe-agent install [--auto-setup]   copia agent + skill para .claude/
   dfe-agent update                   baixa base RAG do GitHub Releases
   dfe-agent query "<pergunta>"       busca na base e retorna JSON {answer, sources[]}
   dfe-agent status                   info da base instalada

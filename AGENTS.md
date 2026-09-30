@@ -1,13 +1,15 @@
 # DFe-Agent
+
+> **Sprint 19 (2026-09-30)**: o harness migrou do OpenCode + MiniMax-M3 para o **Claude Code**. O contexto operacional vive em `CLAUDE.md` e em `.claude/`. Este arquivo passa a ser o **historico de decisoes**; referencias a `.opencode/`, `opencode.json` e MiniMax nas secoes de sprints anteriores sao historicas.
 > Agente local que coleta documentação fiscal eletrônica oficial (NF-e, NFC-e, CT-e, MDF-e, SPED) e legislação fiscal eletrônica oficial, indexa em base RAG local e responde perguntas em linguagem natural fundamentadas em notas técnicas.
 
 ## Distribuicao como pacote npm (Sprint 14+)
 
-Desde a Sprint 14, o agente `dfe-agent` e' distribuido como `@dfe-agent/dfe-agent` no npm. Outros projetos opencode consomem via:
+Desde a Sprint 14, o agente `dfe-agent` e' distribuido como `@wiati/dfe-agent` no npm. Desde a Sprint 19, outros projetos **Claude Code** consomem via:
 
 ```bash
-npm install @dfe-agent/dfe-agent
-npx dfe-agent install   # copia agent + skill para .opencode/
+npm install @wiati/dfe-agent
+npx dfe-agent install   # copia agent + skill para .claude/
 npx dfe-agent update    # baixa base RAG (~30MB) do GitHub Releases
 ```
 
@@ -469,3 +471,16 @@ incondicionais + o conteúdo deste AGENTS.md.
    3. Re-habilitar Windows na CI matrix do `packages/dfe-agent/` (gate FOLLOW-UP Sprint 14 #2, agora via `tests/query/cache.test.ts` BEHAVIORAL apos upgrade `better-sqlite3`).
    4. Documentar em `.opencode/agent/dfe-agent.md` que o agent `dfe-agent` agora responde via CLI publicado `@wiati/dfe-agent` (instalacao via `/deploy --npm`).
    5. Migrar `npm publish` de manual para `/deploy --npm` (gate humano continua, mas agora via agent).
+
+## Decisoes resolvidas (Sprint 19)
+
+- [x] **Harness migrado do OpenCode + MiniMax-M3 para o Claude Code** (pedido de Andrews em 2026-09-30: o harness OpenCode era problematico). `.opencode/` e `opencode.json` foram REMOVIDOS; contexto operacional em `CLAUDE.md`; harness em `.claude/`:
+    - `opencode.json > instructions` -> `CLAUDE.md` + `.claude/rules/*.md` (`src.md`/`tests.md` com `paths:`).
+    - Plugin `agent-hooks.ts` -> `.claude/settings.json > hooks` + `.claude/hooks/dispatch.py`. O agent e' detectado pelo `agent_type` do payload (sem `agent_type` = sessao principal = perfil `dev`; subagents genericos tambem recebem `dev`; `dfe-agent` sem hooks).
+    - `@dev` virou a sessao principal (subagents do Claude Code nao delegam a outros subagents, e o `@dev` precisa chamar o `code-reviewer`). `code-reviewer`, `deployer` e `dfe-agent` sao subagents em `.claude/agents/` com `tools:` explicito no lugar de `permission.*`; `model: inherit`.
+    - `/feature`, `/bug`, `/duvida` em `.claude/commands/`; `/deploy` e' a skill `.claude/skills/deploy/` (`context: fork`, `agent: deployer`, `disable-model-invocation: true`). O gate "sim, executar" virou `permissions.ask` para `git push`, `git tag`, `npm publish/unpublish/dist-tag` e `gh release`.
+    - RAG meta-cognitivo em `.claude/rag/` (deps em `.claude/package.json`; `node_modules` e `rag.db` ignorados por `.claude/.gitignore`). Comandos usam `npx tsx .claude/rag/...`.
+    - Guardrail runtime `domain_guard.py` + `allowed_domains.py` continua no pacote `hooks`, agora em `.claude/hooks/` (`src/utils/syspath_bootstrap.py::HARNESS_PATH`).
+- [x] **Mudancas de comportamento dos hooks**: Stop do `dev` so' roda `pytest tests/` quando o turno editou arquivos e bloqueia o encerramento no maximo uma vez por ciclo (`stop_hook_active`); `dev/pre_tool_use.py` libera `search.ts`/`embed.ts` (Fases RAG antes/depois) e so' bloqueia `summarize.ts`. No OpenCode o plugin quase sempre caia no modo permissivo (`agent nao detectado`), entao os bloqueios raramente valiam.
+- [x] **Pacote `@wiati/dfe-agent` passa a instalar em `.claude/`** do consumidor (`agents/dfe-agent.md` + `skills/dfe-fiscal/`). Fontes do sync: `.claude/agents/dfe-agent.md` e `.claude/skills/dfe-fiscal/`. Exige nova versao publicada via `/deploy --npm`.
+- [x] **Testes do harness reescritos**: removidos `test_opencode_config.py`, `test_agent_hooks_plugin_loads.py`, `test_gitignore_opencode.py`, `test_{dev,deployer,code_reviewer}_plugin_dispatch.py`, `test_unified_harness.py`, `test_no_legacy_agents.py`; novos `tests/integration/test_claude_harness.py` e `tests/integration/test_claude_hooks_dispatch.py`; testes de definicao dos agents validam `tools:` em vez de `permission.*`.

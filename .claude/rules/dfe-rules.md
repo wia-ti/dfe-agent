@@ -4,7 +4,7 @@ Regras inviolaveis que governam o comportamento do agente. Toda violacao invalid
 
 1. **Nunca inventar informacao** — toda afirmacao deve citar fonte da base RAG; se nao houver base, declarar explicitamente a ausencia de informacao.
 
-2. **Nunca acessar dominios fora de `ALLOWED_DOMAINS`** — enforced pelo guard HTTP in-process `src/utils/http_guard.py` (modulo `.opencode/hooks/domain_guard.py`).
+2. **Nunca acessar dominios fora de `ALLOWED_DOMAINS`** — enforced pelo guard HTTP in-process `src/utils/http_guard.py` (modulo `.claude/hooks/domain_guard.py`).
 
 3. **Toda resposta termina com bloco `Fontes:`** contendo `URL - Titulo do documento` para cada fonte citada.
 

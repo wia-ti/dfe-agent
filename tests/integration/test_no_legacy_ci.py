@@ -85,15 +85,13 @@ def test_agents_md_does_not_reference_removed_workflows() -> None:
         )
 
 
-def test_opencode_json_does_not_reference_removed_workflows() -> None:
-    """opencode.json NAO deve mencionar os workflows removidos."""
-    config: Path = PROJECT_ROOT / "opencode.json"
-    if not config.exists():
-        pytest.skip("opencode.json nao existe")
+def test_claude_settings_does_not_reference_removed_workflows() -> None:
+    """.claude/settings.json NAO deve mencionar os workflows removidos."""
+    config: Path = PROJECT_ROOT / ".claude" / "settings.json"
     text: str = config.read_text(encoding="utf-8")
     for wf in REMOVED_WORKFLOWS:
         assert wf not in text, (
-            f"opencode.json NAO deve mencionar `{wf}` (removido em Sprint 18)."
+            f".claude/settings.json NAO deve mencionar `{wf}` (removido em Sprint 18)."
         )
 
 

@@ -2,14 +2,14 @@
   "name": "dfe-agent-learning-rag",
   "version": "0.1.0",
   "private": true,
-  "description": "Sistema de RAG meta-cognitivo do DFe-Agent. Captura aprendizados de agents e sessoes, persiste em .claude/rag.db e injeta contexto relevante em prompts futuros.",
+  "description": "Sistema de RAG meta-cognitivo do DFe-Agent. Captura aprendizados de agents e sessoes, persiste em .claude/rag/rag.db e injeta contexto relevante em prompts futuros.",
   "type": "module",
   "scripts": {
-    "summarize": "tsx .claude/scripts/summarize.ts",
-    "embed": "tsx .claude/scripts/embed.ts",
-    "search": "tsx .claude/scripts/search.ts",
-    "init": "tsx .claude/scripts/init_db.ts",
-    "test": "tsx .claude/scripts/smoke_test.ts"
+    "summarize": "tsx .claude/rag/summarize.ts",
+    "embed": "tsx .claude/rag/embed.ts",
+    "search": "tsx .claude/rag/search.ts",
+    "init": "tsx .claude/rag/init_db.ts",
+    "test": "tsx .claude/rag/smoke_test.ts"
   },
   "dependencies": {
     "better-sqlite3": "^11.7.0",

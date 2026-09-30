@@ -1,4 +1,4 @@
-"""Testes de integracao do hook `.opencode/hooks/dev/stop.py` (PLAN_SPRINT10 B.3 + Sprint 12 B12.1).
+"""Testes de integracao do hook `.claude/hooks/dev/stop.py` (PLAN_SPRINT10 B.3 + Sprint 12 B12.1).
 
 Cobre os 4 cenarios canonicos:
 
@@ -14,7 +14,7 @@ Implementado como subprocesso Python (padrao de
 detalhes internos de import do hook.
 
 > **Sprint 12 (B12.1)**: hook movido de ``.claude/hooks/dev/`` para
-> ``.opencode/hooks/dev/``.
+> ``.claude/hooks/dev/``.
 """
 from __future__ import annotations
 
@@ -27,7 +27,7 @@ from pathlib import Path
 import pytest
 
 PROJECT_ROOT: Path = Path(__file__).resolve().parents[2]
-HOOK_SCRIPT: Path = PROJECT_ROOT / ".opencode" / "hooks" / "dev" / "stop.py"
+HOOK_SCRIPT: Path = PROJECT_ROOT / ".claude" / "hooks" / "dev" / "stop.py"
 
 
 def _make_payload(

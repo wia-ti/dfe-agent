@@ -30,9 +30,9 @@ test("drift-check le source + dist e compara SHA-256", () => {
 });
 
 test("drift-check: source==dist -> exit 0", () => {
-  const agentSrc = resolve(DFE_ROOT, ".opencode/agent/dfe-agent.md");
+  const agentSrc = resolve(DFE_ROOT, ".claude/agents/dfe-agent.md");
   const agentDst = resolve(PKG_ROOT, "dist/agent.md");
-  const skillSrc = resolve(DFE_ROOT, ".opencode/skills/dfe-fiscal/SKILL.md");
+  const skillSrc = resolve(DFE_ROOT, ".claude/skills/dfe-fiscal/SKILL.md");
   const skillDst = resolve(PKG_ROOT, "dist/skill/dfe-fiscal/SKILL.md");
   assert.equal(sha(agentSrc), sha(agentDst));
   assert.equal(sha(skillSrc), sha(skillDst));

@@ -3,12 +3,12 @@ nao levanta ``RuntimeError("domain_guard indisponivel")`` quando invocado
 a partir do cwd do projeto (modo real de uso), mesmo sem ``PYTHONPATH``.
 
 Origem: o import top-level de ``hooks.domain_guard`` em
-``src.utils.http_guard`` exigia que o diretorio ``.opencode/`` estivesse em
+``src.utils.http_guard`` exigia que o diretorio ``.claude/`` estivesse em
 ``sys.path``. Antes do PLAN_SPRINT7, isso so' funcionava via
 ``tests/conftest.py`` + workaround manual em
 ``tests/unit/query/test_main.py``. Apos o bootstrap automatico introduzido
 em A.2, o CLI deve rodar em subprocesso a partir do cwd do projeto sem
-``PYTHONPATH`` apontando para ``.opencode``.
+``PYTHONPATH`` apontando para ``.claude``.
 
 Escopo deste teste: subprocess a partir do cwd do projeto (modo real
 de uso: terminal do usuario, agente opencode). Subprocess em

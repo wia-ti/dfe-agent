@@ -197,7 +197,7 @@ def _run_once(db_path: Path, data_dir: Path) -> int:
 def main(argv: list[str] | None = None) -> int:
     """Ponto de entrada. Retorna o codigo de saida do processo."""
     # Lazy import (mesma razao do query.__main__: nao regredir testes que
-    # importam o modulo sem ``.opencode`` em PYTHONPATH).
+    # importam o modulo sem ``.claude`` em PYTHONPATH).
     from src.utils.http_guard_bootstrap import install_guard_once
 
     install_guard_once()

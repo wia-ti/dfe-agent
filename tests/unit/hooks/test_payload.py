@@ -1,7 +1,7 @@
-"""Testes do helper `.opencode/hooks/_lib/payload.py` (PLAN_SPRINT10 C.1).
+"""Testes do helper `.claude/hooks/_lib/payload.py` (PLAN_SPRINT10 C.1).
 
 Sprint 12 (B12.1) moveu o helper de ``.claude/hooks/_lib/`` para
-``.opencode/hooks/_lib/``. Suite cobre:
+``.claude/hooks/_lib/``. Suite cobre:
 
 - `detect_active_agent` retorna slug explicito do payload.
 - `detect_active_agent` cai para `DFE_ACTIVE_AGENT` env var.
@@ -20,12 +20,12 @@ from pathlib import Path
 import pytest
 
 PROJECT_ROOT: Path = Path(__file__).resolve().parents[3]
-PAYLOAD_LIB: Path = PROJECT_ROOT / ".opencode" / "hooks" / "_lib" / "payload.py"
+PAYLOAD_LIB: Path = PROJECT_ROOT / ".claude" / "hooks" / "_lib" / "payload.py"
 
 
 def _import_payload():
     import sys
-    sys.path.insert(0, str(PROJECT_ROOT / ".opencode" / "hooks"))
+    sys.path.insert(0, str(PROJECT_ROOT / ".claude" / "hooks"))
     from _lib import payload as _p
     return _p
 

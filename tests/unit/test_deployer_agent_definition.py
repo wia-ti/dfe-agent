@@ -1,33 +1,28 @@
-"""Validacao estrutural do agente `@deployer` (PLAN_SPRINT18 / Task 2.1).
+"""Validacao estrutural do subagent ``deployer`` (Claude Code).
 
-Sprint 18 — agent Deployer (substituto do CI). Cobre:
+Cobre:
 
-- Arquivo existe em ``.opencode/agent/deployer.md`` (singular; canonico
-  pos-Sprint 11 D.1).
-- Frontmatter YAML valido entre ``---``.
-- Campos canonicos: ``name: deployer``, ``mode: primary``, ``model``.
-- ``permission.edit: deny`` (defesa em profundidade — deployer NAO
-  altera arquivos do projeto).
-- ``permission.task/skill/todowrite/webfetch: deny`` (escopo restrito).
-- ``permission.read/bash/glob/grep/list: allow`` (escopo minimo necessario).
-- ``permission.external_directory: deny`` (deployer NAO sai do workspace).
-- Corpo declara escopo canonico (git push/tag/branch + npm publish +
-  gh release) e gate humano antes de acoes destrutivas.
-- Corpo referencia os 3 hooks em ``.opencode/hooks/deployer/``.
-
-Precedente estrutural: ``tests/unit/test_dev_agent_definition.py`` (Sprint 10)
-e ``tests/unit/test_code_reviewer_definition.py`` (Sprint 9).
+- Arquivo existe em ``.claude/agents/deployer.md`` com frontmatter valido.
+- ``name: deployer`` + ``description``.
+- ``tools:`` contem apenas leitura + ``Bash`` (deployer NAO edita, NAO delega,
+  NAO consulta web) - substitui o ``permission.*`` do OpenCode.
+- Corpo declara escopo canonico (git push/tag/pull/remote, npm publish/login/
+  dist-tag, gh release), gate humano e os 3 hooks em ``.claude/hooks/deployer/``.
+- ``.claude/settings.json`` exige aprovacao humana (``permissions.ask``) para
+  as acoes destrutivas.
 """
 from __future__ import annotations
 
-import re
+import json
 from pathlib import Path
+from typing import Any
 
 import pytest
+import yaml
 
-AGENT_FILE: Path = (
-    Path(__file__).resolve().parents[2] / ".opencode" / "agent" / "deployer.md"
-)
+ROOT: Path = Path(__file__).resolve().parents[2]
+AGENT_FILE: Path = ROOT / ".claude" / "agents" / "deployer.md"
+SETTINGS_FILE: Path = ROOT / ".claude" / "settings.json"
 
 
 @pytest.fixture(scope="module")
@@ -37,232 +32,66 @@ def agent_text() -> str:
 
 
 @pytest.fixture(scope="module")
-def frontmatter(agent_text: str) -> str:
+def frontmatter(agent_text: str) -> dict[str, Any]:
     parts = agent_text.split("---", 2)
     assert len(parts) >= 3, "Arquivo deve ter frontmatter YAML entre ---"
-    return parts[1]
+    data = yaml.safe_load(parts[1])
+    assert isinstance(data, dict)
+    return data
+
+
+def _tools(frontmatter: dict[str, Any]) -> list[str]:
+    raw = frontmatter.get("tools", "")
+    items = raw if isinstance(raw, list) else str(raw).split(",")
+    return [t.strip() for t in items if t.strip()]
 
 
 def test_agent_file_exists() -> None:
-    assert AGENT_FILE.exists(), (
-        f"Definicao do deployer esperada em {AGENT_FILE}; nao encontrada. "
-        "Crie `.opencode/agent/deployer.md` (PLAN_SPRINT18 Task 2.1)."
-    )
+    assert AGENT_FILE.exists(), f"Definicao do deployer esperada em {AGENT_FILE}."
 
 
-def test_frontmatter_yaml_is_valid(agent_text: str) -> None:
-    import yaml
-    parts = agent_text.split("---", 2)
-    yaml.safe_load(parts[1])
+def test_frontmatter_has_name_and_description(frontmatter: dict[str, Any]) -> None:
+    assert frontmatter.get("name") == "deployer"
+    assert str(frontmatter.get("description", "")).strip()
 
 
-def test_frontmatter_contains_name_deployer(frontmatter: str) -> None:
-    assert re.search(r"^name:\s*deployer\s*$", frontmatter, re.MULTILINE), (
-        f"frontmatter deve conter 'name: deployer'. Recebido:\n{frontmatter}"
-    )
+def test_frontmatter_tools_include_bash(frontmatter: dict[str, Any]) -> None:
+    assert "Bash" in _tools(frontmatter), "deployer roda git/npm/gh via Bash."
 
 
-def test_frontmatter_contains_mode_primary(frontmatter: str) -> None:
-    """`mode: primary` expoe `@deployer` no menu principal do opencode.
-
-    Mesma convencao aplicada a `@dev` em Sprint 14 e `@code-reviewer` em
-    Sprint 9. Slash command `/deploy` continua invocando `deployer`
-    explicitamente via frontmatter, entao a promocao a primary NAO
-    quebra o pipeline.
-    """
-    assert re.search(r"^mode:\s*primary\s*$", frontmatter, re.MULTILINE), (
-        f"frontmatter deve conter 'mode: primary'. Recebido:\n{frontmatter}"
-    )
+@pytest.mark.parametrize(
+    "tool", ["Write", "Edit", "MultiEdit", "NotebookEdit", "Agent", "Skill", "TodoWrite", "WebFetch", "WebSearch"]
+)
+def test_frontmatter_excludes_tool(frontmatter: dict[str, Any], tool: str) -> None:
+    assert tool not in _tools(frontmatter), f"deployer nao pode ter `{tool}`."
 
 
-def test_frontmatter_model_is_declared(frontmatter: str) -> None:
-    """Mesmo placeholder `PROVIDER/MiniMax-M3` e' aceitavel."""
-    assert re.search(r"^model:\s*\S+/\S+\s*$", frontmatter, re.MULTILINE), (
-        f"frontmatter deve conter 'model: PROVIDER/MiniMax-M3'. "
-        f"Recebido:\n{frontmatter}"
-    )
-
-
-def test_frontmatter_permission_denies_edit(frontmatter: str) -> None:
-    """`permission.edit: deny` e' a barreira principal do deployer.
-
-    Deployer NAO altera arquivos do projeto. Faz apenas operacoes
-    remotas via Bash (git push, npm publish, gh release). Defesa em
-    profundidade contra bypass via Bash + redirecionamento.
-    """
-    assert re.search(r"^\s*edit:\s*deny\s*$", frontmatter, re.MULTILINE), (
-        f"permission.edit deve ser 'deny' (deployer NAO edita). "
-        f"Recebido:\n{frontmatter}"
-    )
-
-
-def test_frontmatter_permission_denies_task(frontmatter: str) -> None:
-    """`permission.task: deny` impede o deployer de sub-delegar."""
-    assert re.search(r"^\s*task:\s*deny\s*$", frontmatter, re.MULTILINE), (
-        f"permission.task deve ser 'deny' (deployer NAO delega). "
-        f"Recebido:\n{frontmatter}"
-    )
-
-
-def test_frontmatter_permission_denies_skill(frontmatter: str) -> None:
-    """`permission.skill: deny` impede o deployer de carregar skill domain."""
-    assert re.search(r"^\s*skill:\s*deny\s*$", frontmatter, re.MULTILINE), (
-        f"permission.skill deve ser 'deny'. Recebido:\n{frontmatter}"
-    )
-
-
-def test_frontmatter_permission_denies_todowrite(frontmatter: str) -> None:
-    """`permission.todowrite: deny` — fluxo de deploy e' curto, sem TODO."""
-    assert re.search(r"^\s*todowrite:\s*deny\s*$", frontmatter, re.MULTILINE), (
-        f"permission.todowrite deve ser 'deny'. Recebido:\n{frontmatter}"
-    )
-
-
-def test_frontmatter_permission_denies_webfetch(frontmatter: str) -> None:
-    """`permission.webfetch: deny` — deployer NAO consulta web."""
-    assert re.search(r"^\s*webfetch:\s*deny\s*$", frontmatter, re.MULTILINE), (
-        f"permission.webfetch deve ser 'deny'. Recebido:\n{frontmatter}"
-    )
-
-
-def test_frontmatter_permission_denies_external_directory(frontmatter: str) -> None:
-    """`permission.external_directory: deny` impede escrita fora do workspace."""
-    assert re.search(
-        r"^\s*external_directory:\s*deny\s*$", frontmatter, re.MULTILINE
-    ), (
-        f"permission.external_directory deve ser 'deny'. "
-        f"Recebido:\n{frontmatter}"
-    )
-
-
-def test_frontmatter_permission_allows_read(frontmatter: str) -> None:
-    """`permission.read: allow` — deployer precisa ler (git status, etc.)."""
-    assert re.search(r"^\s*read:\s*allow\s*$", frontmatter, re.MULTILINE), (
-        f"permission.read deve ser 'allow'. Recebido:\n{frontmatter}"
-    )
-
-
-def test_frontmatter_permission_allows_bash(frontmatter: str) -> None:
-    """`permission.bash: allow` — deployer roda git/npm/gh via Bash.
-
-    O hook ``pre_tool_use.py`` do deployer implementa allow list
-    explicita + block list de defesa em profundidade.
-    """
-    assert re.search(r"^\s*bash:\s*allow\s*$", frontmatter, re.MULTILINE), (
-        f"permission.bash deve ser 'allow'. Recebido:\n{frontmatter}"
-    )
-
-
-def test_frontmatter_permission_allows_glob(frontmatter: str) -> None:
-    """`permission.glob: allow` — deployer inspeciona working tree."""
-    assert re.search(r"^\s*glob:\s*allow\s*$", frontmatter, re.MULTILINE), (
-        f"permission.glob deve ser 'allow'. Recebido:\n{frontmatter}"
-    )
-
-
-def test_frontmatter_permission_allows_grep(frontmatter: str) -> None:
-    """`permission.grep: allow` — deployer busca em logs e configs."""
-    assert re.search(r"^\s*grep:\s*allow\s*$", frontmatter, re.MULTILINE), (
-        f"permission.grep deve ser 'allow'. Recebido:\n{frontmatter}"
-    )
-
-
-def test_frontmatter_permission_allows_list(frontmatter: str) -> None:
-    """`permission.list: allow` — deployer lista diretorios."""
-    assert re.search(r"^\s*list:\s*allow\s*$", frontmatter, re.MULTILINE), (
-        f"permission.list deve ser 'allow'. Recebido:\n{frontmatter}"
-    )
-
-
-def test_body_declares_scope_git(agent_text: str) -> None:
-    """Corpo declara escopo canonico: git push/pull/tag/branch/remote."""
-    for term in ("git push", "git tag", "git pull", "git remote"):
-        assert term in agent_text, (
-            f"Corpo do deployer deve mencionar '{term}' (escopo canonico). "
-            f"Recebido (primeiros 500 chars):\n{agent_text[:500]}"
-        )
-
-
-def test_body_declares_scope_npm(agent_text: str) -> None:
-    """Corpo declara escopo canonico: npm publish/login/dist-tag."""
-    for term in ("npm publish", "npm login", "npm dist-tag"):
-        assert term in agent_text, (
-            f"Corpo do deployer deve mencionar '{term}' (escopo canonico). "
-            f"Recebido (primeiros 500 chars):\n{agent_text[:500]}"
-        )
-
-
-def test_body_declares_scope_gh_release(agent_text: str) -> None:
-    """Corpo declara escopo canonico: gh release create/delete/upload."""
-    assert "gh release" in agent_text, (
-        "Corpo do deployer deve mencionar 'gh release' (escopo canonico)."
-    )
+@pytest.mark.parametrize("term", ["git push", "git tag", "git pull", "git remote", "npm publish", "npm login", "npm dist-tag", "gh release"])
+def test_body_declares_scope(agent_text: str, term: str) -> None:
+    assert term in agent_text, f"Corpo do deployer deve mencionar '{term}'."
 
 
 def test_body_documents_human_gate(agent_text: str) -> None:
-    """Corpo documenta gate humano antes de acoes destrutivas.
-
-    Acoes destrutivas: `--npm` (publica no registry), `--release`
-    (cria release no GitHub), `--tag` (cria tag que sera' pushed).
-    Gate humano: pedir confirmacao explicita antes de cada.
-    """
     text_lower = agent_text.lower()
-    assert "humano" in text_lower or "human" in text_lower, (
-        "Corpo deve mencionar gate humano (deployer pede confirmacao)."
-    )
-    assert "confirm" in text_lower or "aprov" in text_lower, (
-        "Corpo deve mencionar confirmacao/aprovacao antes de acoes destrutivas."
-    )
+    assert "humano" in text_lower
+    assert "confirm" in text_lower or "aprov" in text_lower
 
 
-def test_body_references_pre_tool_use_hook(agent_text: str) -> None:
-    """Corpo referencia o hook ``pre_tool_use.py`` do deployer."""
-    assert ".opencode/hooks/deployer/pre_tool_use.py" in agent_text, (
-        "Corpo deve referenciar `.opencode/hooks/deployer/pre_tool_use.py` "
-        "(defesa em profundidade: allow list + block list)."
-    )
-
-
-def test_body_references_post_tool_use_hook(agent_text: str) -> None:
-    """Corpo referencia o hook ``post_tool_use.py`` do deployer."""
-    assert ".opencode/hooks/deployer/post_tool_use.py" in agent_text, (
-        "Corpo deve referenciar `.opencode/hooks/deployer/post_tool_use.py` "
-        "(observer)."
-    )
-
-
-def test_body_references_stop_hook(agent_text: str) -> None:
-    """Corpo referencia o hook ``stop.py`` do deployer."""
-    assert ".opencode/hooks/deployer/stop.py" in agent_text, (
-        "Corpo deve referenciar `.opencode/hooks/deployer/stop.py` "
-        "(exit 0 sem pytest e sem RAG capture)."
-    )
+@pytest.mark.parametrize("hook", ["pre_tool_use.py", "post_tool_use.py", "stop.py"])
+def test_body_references_hook(agent_text: str, hook: str) -> None:
+    assert f".claude/hooks/deployer/{hook}" in agent_text
 
 
 def test_body_states_only_deployer_can_push(agent_text: str) -> None:
-    """Corpo explicita que apenas o `@deployer` pode fazer push/publish.
-
-    Diferenca essencial vs `@dev` e `@code-reviewer`:
-    - `@dev` BLOQUEIA `git push` em `pre_tool_use.py`.
-    - `@code-reviewer` tem `permission.edit: deny` (read-only).
-    - `@deployer` ALLOW `git push` (allow list explicita).
-    """
     text_lower = agent_text.lower()
-    assert "deployer" in text_lower and (
-        "apenas" in text_lower or "so' " in text_lower or "somente" in text_lower
-        or "only" in text_lower
-    ), (
-        "Corpo deve explicitar que apenas @deployer pode fazer push/publish."
-    )
+    assert "unico agente autorizado" in text_lower or "unico autorizado" in text_lower
 
 
-def test_body_documents_not_in_scope(agent_text: str) -> None:
-    """Corpo explicita o que NAO esta' em escopo do deployer."""
-    text_lower = agent_text.lower()
-    # NAO edita arquivos
-    assert "edit" in text_lower and (
-        "nao" in text_lower or "not" in text_lower or "negad" in text_lower
-        or "denied" in text_lower or "deny" in text_lower
-    ), (
-        "Corpo deve explicitar que deployer NAO edita arquivos."
-    )
+@pytest.mark.parametrize(
+    "rule",
+    ["Bash(git push:*)", "Bash(git tag:*)", "Bash(npm publish:*)", "Bash(gh release:*)"],
+)
+def test_settings_requires_human_approval(rule: str) -> None:
+    """O gate humano do `/deploy` e' o prompt de permissao do Claude Code."""
+    settings = json.loads(SETTINGS_FILE.read_text(encoding="utf-8"))
+    assert rule in settings["permissions"]["ask"], f"{rule} deve estar em permissions.ask"

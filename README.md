@@ -2,11 +2,11 @@
 
 Agente local que coleta documentacao fiscal eletronica oficial (NF-e, NFC-e, CT-e, MDF-e, SPED, CONFAZ), indexa em base RAG local (SQLite + `sqlite-vec`) e responde perguntas em linguagem natural fundamentadas em notas tecnicas.
 
-> Stack: opencode + MiniMax-M3 + Python 3.11+ + SQLite (vetorial) — 100% local.
+> Stack: Claude Code + Python 3.11+ + SQLite (vetorial) — 100% local.
 
 ## Estrutura
 
-- `.opencode/` — agente, skills, hooks e rules consumidos pelo opencode.
+- `.claude/` — subagents, commands, skills, hooks, rules e RAG meta-cognitivo do Claude Code (contexto em [`CLAUDE.md`](./CLAUDE.md)).
 - `src/collector` `src/parser` `src/indexer` `src/query` `src/db` `src/utils` — pacotes Python do dominio fiscal.
 - `data/` — PDFs/HTML brutos baixados (nao versionado).
 - `storage/` — arquivos do SQLite relacional + vetorial (nao versionado).
@@ -40,9 +40,11 @@ python -m src.indexer.ingest             # ingere documentos pendentes no RAG
 python -m src.query "pergunta em linguagem natural"  # consulta a base
 ```
 
-## Agente opencode
+## Claude Code
 
 ```bash
-opencode run                              # sessao interativa
-opencode run "sua pergunta aqui"          # pergunta direta
+claude                                    # sessao interativa (papel @dev)
+claude "use o subagent dfe-agent: <pergunta fiscal>"
 ```
+
+Slash commands: `/feature`, `/bug`, `/duvida`, `/deploy`.

@@ -31,7 +31,7 @@
  * @see AGENTS.md "Decisoes resolvidas (Sprint 14)" FOLLOW-UPS (geral;
  *      bugs A e B nao foram catalogados em v0.1.0 mas seguem o mesmo
  *      pattern de drift Py/Node documentado na Sprint 14 D.4 + D.7)
- * @see .opencode/rag/knowledge/2026-08-26-dev-sprint14-npm-package.md:21
+ * @see .claude/rag/knowledge/2026-08-26-dev-sprint14-npm-package.md:21
  */
 
 import { resolve } from "node:path";

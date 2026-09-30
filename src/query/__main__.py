@@ -200,7 +200,7 @@ def main(argv: list[str] | None = None) -> int:
     _configure_utf8_stdout()
 
     # Lazy import para conviver com testes que importam este modulo sem
-    # ter ``.opencode`` em PYTHONPATH (ex.: test_each_documented_command_imports_without_error).
+    # ter ``.claude`` em PYTHONPATH (ex.: test_each_documented_command_imports_without_error).
     from src.utils.http_guard_bootstrap import install_guard_once
 
     install_guard_once()

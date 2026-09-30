@@ -20,7 +20,7 @@ import sys
 from pathlib import Path
 
 PROJECT_ROOT: Path = Path(__file__).resolve().parents[2]
-HOOKS_PKG_PARENT: Path = PROJECT_ROOT / ".opencode"
+HOOKS_PKG_PARENT: Path = PROJECT_ROOT / ".claude"
 
 if str(HOOKS_PKG_PARENT) not in sys.path:
     sys.path.insert(0, str(HOOKS_PKG_PARENT))

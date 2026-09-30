@@ -10,7 +10,7 @@ import pytest
 
 SKILL_FILE: Path = (
     Path(__file__).resolve().parents[2]
-    / ".opencode" / "skills" / "dfe-fiscal" / "SKILL.md"
+    / ".claude" / "skills" / "dfe-fiscal" / "SKILL.md"
 )
 
 

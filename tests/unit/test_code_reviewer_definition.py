@@ -1,35 +1,27 @@
-"""Validacao estrutural do agent ``code-reviewer`` (PLAN_SPRINT9 / Fase A / I9.1 + PLAN_SPRINT11 D).
+"""Validacao estrutural do subagent ``code-reviewer`` (Claude Code).
 
-Analogia a ``tests/unit/test_dfe_agent_definition.py``: garante que a
-definicao do code-reviewer em ``.opencode/agent/code-reviewer.md``
-mantem invariantes estruturais sem os quais o opencode nao expoe o
-agent como subagent read-only invocavel:
+Garante que ``.claude/agents/code-reviewer.md`` mantem os invariantes sem os
+quais o Claude Code nao expoe o reviewer como subagent read-only:
 
-- Arquivo existe.
-- Frontmatter YAML valido entre ``---``.
-- Campos canonicos: ``name: code-reviewer`` e ``mode: primary``.
-- ``model: PROVIDER/MiniMax-M3`` (Sprint 11 B11.5; sem prefixo quebra Task tool).
-- ``permission.edit: deny`` (read-only - barreira principal).
-- ``permission.task/skill/todowrite: deny`` (delega/interage/salva).
-- Corpo contem as 3 classes canonicas do relatorio
-  (BLOQUEANTE / IMPORTANTE / SUGESTAO) e a restricao read-only.
-
-Sprint 11 D.1: arquivo movido de ``.opencode/agents/`` (plural) para
-``.opencode/agent/`` (singular) — path canonico do opencode CLI.
+- Arquivo existe e tem frontmatter YAML valido.
+- ``name: code-reviewer`` + ``description`` (obrigatorios em subagents).
+- ``tools:`` sem ferramentas de escrita/delegacao (``Write``, ``Edit``,
+  ``NotebookEdit``, ``Agent``, ``Skill``, ``TodoWrite``) - barreira principal
+  do read-only (substitui o ``permission.*: deny`` do OpenCode).
+- Corpo contem as 3 classes canonicas do relatorio e a restricao read-only.
 """
 from __future__ import annotations
 
-import re
 from pathlib import Path
+from typing import Any
 
 import pytest
+import yaml
 
 AGENT_FILE: Path = (
-    Path(__file__).resolve().parents[2]
-    / ".opencode"
-    / "agent"
-    / "code-reviewer.md"
+    Path(__file__).resolve().parents[2] / ".claude" / "agents" / "code-reviewer.md"
 )
+FORBIDDEN_TOOLS: tuple[str, ...] = ("Write", "Edit", "MultiEdit", "NotebookEdit", "Agent", "Skill", "TodoWrite")
 
 
 @pytest.fixture(scope="module")
@@ -39,150 +31,54 @@ def agent_text() -> str:
 
 
 @pytest.fixture(scope="module")
-def frontmatter(agent_text: str) -> str:
+def frontmatter(agent_text: str) -> dict[str, Any]:
     parts = agent_text.split("---", 2)
-    assert len(parts) >= 3, (
-        "Arquivo deve ter frontmatter YAML entre '---'; "
-        f"obtido {len(parts)} secoes"
-    )
-    return parts[1]
+    assert len(parts) >= 3, "Arquivo deve ter frontmatter YAML entre '---'"
+    data = yaml.safe_load(parts[1])
+    assert isinstance(data, dict)
+    return data
+
+
+def _tools(frontmatter: dict[str, Any]) -> list[str]:
+    raw = frontmatter.get("tools", "")
+    items = raw if isinstance(raw, list) else str(raw).split(",")
+    return [t.strip() for t in items if t.strip()]
 
 
 def test_agent_file_exists() -> None:
-    assert AGENT_FILE.exists(), (
-        f"Definicao do code-reviewer esperada em {AGENT_FILE}; nao encontrada."
-    )
+    assert AGENT_FILE.exists(), f"Definicao do code-reviewer esperada em {AGENT_FILE}."
 
 
-def test_frontmatter_contains_name_code_reviewer(frontmatter: str) -> None:
-    assert re.search(
-        r"^name:\s*code-reviewer\s*$", frontmatter, re.MULTILINE,
-    ), f"frontmatter deve conter 'name: code-reviewer'. Recebido:\n{frontmatter}"
+def test_frontmatter_has_name_and_description(frontmatter: dict[str, Any]) -> None:
+    assert frontmatter.get("name") == "code-reviewer"
+    assert str(frontmatter.get("description", "")).strip()
 
 
-def test_frontmatter_yaml_is_valid(agent_text: str) -> None:
-    import yaml
-
-    parts = agent_text.split("---", 2)
-    yaml.safe_load(parts[1])
+def test_frontmatter_declares_tools_allowlist(frontmatter: dict[str, Any]) -> None:
+    """Sem ``tools:`` o subagent herda todas as ferramentas (inclusive Edit)."""
+    assert _tools(frontmatter), "code-reviewer deve declarar `tools:` explicito."
 
 
-def test_frontmatter_has_model_field(frontmatter: str) -> None:
-    """Frontmatter deve declarar ``model: PROVIDER/MiniMax-M3``.
-
-    O formato ``PROVIDER/<modelo>`` e' obrigatorio desde a Sprint 11
-    (B11.5): sem o prefixo do provider, a Task tool do opencode
-    retorna ``Model not found: MiniMax-M3/.`` e o reviewer nao pode
-    ser invocado na Fase 4 do ``/feature``. Precedente:
-    ``test_dfe_agent_definition.py::test_frontmatter_contains_model_minimax``
-    e ``test_dev_agent_definition.py::test_frontmatter_model_is_declared``.
-    """
-    assert re.search(
-        r"^model:\s*\S+/\S+", frontmatter, re.MULTILINE,
-    ), (
-        "frontmatter deve conter 'model: PROVIDER/MiniMax-M3' "
-        "(formato com prefixo de provider, obrigatorio desde Sprint 11 B11.5). "
-        f"Recebido:\n{frontmatter}"
-    )
+@pytest.mark.parametrize("tool", FORBIDDEN_TOOLS)
+def test_frontmatter_excludes_write_tools(frontmatter: dict[str, Any], tool: str) -> None:
+    assert tool not in _tools(frontmatter), f"code-reviewer nao pode ter `{tool}` (read-only)."
 
 
-def test_frontmatter_has_mode_primary(frontmatter: str) -> None:
-    """``mode: primary`` expoe o code-reviewer no menu principal (Sprint 14+).
-
-    Antes da Sprint 14, era ``mode: subagent`` (invisivel no menu primario).
-    Promovido a primary em 2026-08-26 para que usuarios possam invocar
-    `@code-reviewer` diretamente via TUI. Slash commands (`/feature`, `/bug`)
-    continuam invocando via Task tool sem quebra de pipeline.
-    """
-    assert re.search(
-        r"^mode:\s*primary\s*$", frontmatter, re.MULTILINE,
-    ), (
-        f"frontmatter deve conter 'mode: primary' (Sprint 14). "
-        f"Recebido:\n{frontmatter}"
-    )
-
-
-def test_frontmatter_denies_edit(frontmatter: str) -> None:
-    """``permission.edit: deny`` e' a barreira principal do read-only."""
-    assert re.search(
-        r"^permission:\s*$", frontmatter, re.MULTILINE,
-    ), f"frontmatter deve ter bloco 'permission:'. Recebido:\n{frontmatter}"
-    assert re.search(
-        r"^\s*edit:\s*deny\s*$", frontmatter, re.MULTILINE,
-    ), (
-        f"permission.edit deve ser 'deny' (read-only). "
-        f"Recebido:\n{frontmatter}"
-    )
-
-
-def test_frontmatter_denies_task(frontmatter: str) -> None:
-    """``permission.task: deny`` impede o reviewer de delegar a outro subagent."""
-    assert re.search(
-        r"^\s*task:\s*deny\s*$", frontmatter, re.MULTILINE,
-    ), (
-        f"permission.task deve ser 'deny' (reviewer nao delega). "
-        f"Recebido:\n{frontmatter}"
-    )
-
-
-def test_frontmatter_denies_skill(frontmatter: str) -> None:
-    """``permission.skill: deny`` impede o reviewer de carregar skill domain."""
-    assert re.search(
-        r"^\s*skill:\s*deny\s*$", frontmatter, re.MULTILINE,
-    ), (
-        f"permission.skill deve ser 'deny'. Recebido:\n{frontmatter}"
-    )
-
-
-def test_frontmatter_denies_todowrite(frontmatter: str) -> None:
-    """``permission.todowrite: deny`` impede o reviewer de criar TODOs."""
-    assert re.search(
-        r"^\s*todowrite:\s*deny\s*$", frontmatter, re.MULTILINE,
-    ), (
-        f"permission.todowrite deve ser 'deny'. Recebido:\n{frontmatter}"
-    )
-
-
-def test_frontmatter_allows_read(frontmatter: str) -> None:
-    """``permission.read: allow`` confirma que o agent pode ler (escopo principal)."""
-    assert re.search(
-        r"^\s*read:\s*allow\s*$", frontmatter, re.MULTILINE,
-    ), (
-        f"permission.read deve ser 'allow'. Recebido:\n{frontmatter}"
-    )
+@pytest.mark.parametrize("tool", ["Read", "Grep", "Glob", "Bash"])
+def test_frontmatter_allows_read_tools(frontmatter: dict[str, Any], tool: str) -> None:
+    assert tool in _tools(frontmatter), f"code-reviewer precisa de `{tool}`."
 
 
 def test_body_mentions_classification(agent_text: str) -> None:
-    """Corpo deve descrever as 3 classes canonicas do relatorio."""
     for klass in ("BLOQUEANTE", "IMPORTANTE", "SUGESTAO"):
-        assert klass in agent_text, (
-            f"Corpo do code-reviewer deve mencionar a classe '{klass}' "
-            "no template do relatorio."
-        )
+        assert klass in agent_text, f"Corpo deve mencionar a classe '{klass}'."
 
 
 def test_body_mentions_read_only(agent_text: str) -> None:
-    """Corpo deve declarar explicitamente o escopo read-only."""
-    assert "read-only" in agent_text.lower(), (
-        "Corpo deve conter 'read-only' (escopo inegociavel do agent)."
-    )
+    assert "read-only" in agent_text.lower()
 
 
 def test_body_references_hooks(agent_text: str) -> None:
-    """Corpo deve apontar para os 2 hooks em ``.opencode/hooks/code-reviewer/``.
-
-    Documentacao canonica em ``AGENTS.md`` (Sprint 4) lista:
-    - ``pre_tool_use.py`` (bloqueia Write/Edit).
-    - ``pre_tool_use_bash.py`` (bloqueia Bash destrutivo).
-
-    Sprint 12 (B12.1): hooks migraram de ``.claude/hooks/code-reviewer/``
-    para ``.opencode/hooks/code-reviewer/``.
-    """
-    assert ".opencode/hooks/code-reviewer/pre_tool_use.py" in agent_text, (
-        "Corpo deve referenciar o hook pre_tool_use.py do code-reviewer "
-        "(path canonico pos-Sprint 12 B12.1)."
-    )
-    assert ".opencode/hooks/code-reviewer/pre_tool_use_bash.py" in agent_text, (
-        "Corpo deve referenciar o hook pre_tool_use_bash.py do code-reviewer "
-        "(path canonico pos-Sprint 12 B12.1)."
-    )
+    """Corpo aponta para os 2 hooks em ``.claude/hooks/code-reviewer/``."""
+    assert ".claude/hooks/code-reviewer/pre_tool_use.py" in agent_text
+    assert ".claude/hooks/code-reviewer/pre_tool_use_bash.py" in agent_text

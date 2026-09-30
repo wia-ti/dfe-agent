@@ -24,7 +24,7 @@ Origem do guardrail (PLAN_SPRINT4 A.1, A.3):
       este modulo LEVANTA ``RuntimeError`` na importacao. Nenhum
       stub permissivo.
     - A politica de match exato (sem suffix-match) e definida em
-      ``.opencode/hooks/domain_guard.py`` (BLOQUEANTE #3).
+      ``.claude/hooks/domain_guard.py`` (BLOQUEANTE #3).
 """
 from __future__ import annotations
 

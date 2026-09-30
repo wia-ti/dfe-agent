@@ -4,14 +4,14 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 
-# Adiciona `.opencode/` ao sys.path para que `from hooks.allowed_domains import
-# ALLOWED_DOMAINS` funcione em qualquer modulo deste pacote. `.opencode/hooks/`
+# Adiciona `.claude/` ao sys.path para que `from hooks.allowed_domains import
+# ALLOWED_DOMAINS` funcione em qualquer modulo deste pacote. `.claude/hooks/`
 # ja tem `__init__.py` (criado na Task 3.1), entao trata-se como pacote Python
-# valido a partir do momento que `.opencode/` esta no sys.path.
+# valido a partir do momento que `.claude/` esta no sys.path.
 _PARSER_ROOT_PARENT = Path(__file__).resolve().parents[2]
-_OPENCODE_DIR = _PARSER_ROOT_PARENT / ".opencode"
-if str(_OPENCODE_DIR) not in sys.path:
-    sys.path.insert(0, str(_OPENCODE_DIR))
+_HARNESS_DIR = _PARSER_ROOT_PARENT / ".claude"
+if str(_HARNESS_DIR) not in sys.path:
+    sys.path.insert(0, str(_HARNESS_DIR))
 
 # Re-exports publicos. Usa try/except para conviver com o paralelismo da
 # Task 4.1: se `pdf_parser.py` ainda nao foi escrito pelo sub-agent paralelo,

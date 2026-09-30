@@ -4,11 +4,11 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 
-# Bootstrap: garante que .opencode/ esteja no sys.path para imports da skill
+# Bootstrap: garante que .claude/ esteja no sys.path para imports da skill
 _QUERY_PARENT: Path = Path(__file__).resolve().parents[1]
-_OPENCODE_DIR: Path = _QUERY_PARENT / ".opencode"
-if str(_OPENCODE_DIR) not in sys.path:
-    sys.path.insert(0, str(_OPENCODE_DIR))
+_HARNESS_DIR: Path = _QUERY_PARENT / ".claude"
+if str(_HARNESS_DIR) not in sys.path:
+    sys.path.insert(0, str(_HARNESS_DIR))
 
 # Re-export de QueryEngine com fallback resiliente (Task 6.1 paralela).
 # Se query_engine.py ainda nao foi entregue, QueryEngine fica None; apos a entrega

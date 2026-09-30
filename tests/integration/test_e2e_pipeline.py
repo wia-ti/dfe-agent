@@ -112,7 +112,7 @@ def test_e2e_query_no_evidence(tmp_path: Path) -> None:
     assert not db_path.exists()
 
     project_root = Path(__file__).resolve().parents[2]
-    opencode_path = project_root / ".opencode"
+    opencode_path = project_root / ".claude"
     env = os.environ.copy()
     existing_pp = env.get("PYTHONPATH", "")
     pp_parts: list[str] = [str(project_root), str(opencode_path)]

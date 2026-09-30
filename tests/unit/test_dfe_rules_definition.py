@@ -12,7 +12,7 @@ from pathlib import Path
 
 import pytest
 
-RULES_FILE: Path = Path(__file__).resolve().parents[2] / ".opencode" / "rules" / "dfe-rules.md"
+RULES_FILE: Path = Path(__file__).resolve().parents[2] / ".claude" / "rules" / "dfe-rules.md"
 
 
 @pytest.fixture(scope="module")
@@ -55,7 +55,7 @@ def test_rules_contains_required_literals(rules_text: str):
 def test_rules_no_longer_mandates_collector_invocation(rules_text: str) -> None:
     """Sprint 11 D.4: regra "Sempre executar collector --once" foi removida.
 
-    A regra continua documentada em ``.opencode/skills/dfe-fiscal/SKILL.md``
+    A regra continua documentada em ``.claude/skills/dfe-fiscal/SKILL.md``
     (Passo 2 do workflow canonico), mas NAO como regra obrigatoria
     pre-resposta (contradizia o gate ``dev/pre_tool_use.py``).
     """

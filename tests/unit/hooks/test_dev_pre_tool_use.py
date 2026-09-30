@@ -1,4 +1,4 @@
-"""Testes unit do hook ``.opencode/hooks/dev/pre_tool_use.py`` (PLAN_SPRINT10 B.1 + Sprint 12 B12.1).
+"""Testes unit do hook ``.claude/hooks/dev/pre_tool_use.py`` (PLAN_SPRINT10 B.1 + Sprint 12 B12.1).
 
 Cobre:
 
@@ -19,8 +19,8 @@ Estrategia: ``subprocess.run`` com ``sys.executable`` (padrao de
 acoplar com detalhes internos de import do hook.
 
 > **Sprint 12 (B12.1)**: hook movido de ``.claude/hooks/dev/`` para
-> ``.opencode/hooks/dev/``. Scripts TS do RAG meta migraram para
-> ``.opencode/rag/``.
+> ``.claude/hooks/dev/``. Scripts TS do RAG meta migraram para
+> ``.claude/rag/``.
 """
 from __future__ import annotations
 
@@ -34,7 +34,7 @@ from pathlib import Path
 import pytest
 
 PROJECT_ROOT: Path = Path(__file__).resolve().parents[3]
-HOOK_SCRIPT: Path = PROJECT_ROOT / ".opencode" / "hooks" / "dev" / "pre_tool_use.py"
+HOOK_SCRIPT: Path = PROJECT_ROOT / ".claude" / "hooks" / "dev" / "pre_tool_use.py"
 LOG_PATH: Path = PROJECT_ROOT / "storage" / "agent_hooks.log"
 
 
@@ -170,22 +170,24 @@ def test_blocks_rag_pipeline_commands(cmd: str) -> None:
     assert "BLOQUEADO" in proc.stderr
 
 
+def test_blocks_rag_meta_summarize_script() -> None:
+    """``summarize.ts`` e' chamado pelo hook ``stop.py``, NAO pelo agent ad-hoc."""
+    proc = _run_hook({"tool_name": "Bash", "tool_input": {"command": "npx tsx .claude/rag/summarize.ts -i transcript.jsonl"}})
+    assert proc.returncode == 2
+    assert "BLOQUEADO" in proc.stderr
+
+
 @pytest.mark.parametrize(
     "cmd",
     [
-        "npx tsx .opencode/rag/embed.ts --file .opencode/rag/knowledge/x.md",
-        "npx tsx .opencode/rag/search.ts -q foo",
-        "npx tsx .opencode/rag/summarize.ts -i transcript.jsonl",
+        "npx tsx .claude/rag/embed.ts --file .claude/rag/knowledge/x.md",
+        "npx tsx .claude/rag/search.ts -q foo -a dev --top-k 5",
     ],
 )
-def test_blocks_rag_meta_cognitive_scripts(cmd: str) -> None:
-    """Scripts do RAG meta sao chamados pelos hooks learning_* ou pelos
-    commands `/feature /bug /duvida` explicitamente, NAO pelo agent ad-hoc."""
+def test_allows_rag_meta_search_and_embed(cmd: str) -> None:
+    """``search.ts``/``embed.ts`` sao as Fases RAG antes/depois de /feature /bug /duvida."""
     proc = _run_hook({"tool_name": "Bash", "tool_input": {"command": cmd}})
-    assert proc.returncode == 2, (
-        f"`{cmd}` deveria ser bloqueado; obtido {proc.returncode}."
-    )
-    assert "BLOQUEADO" in proc.stderr
+    assert proc.returncode == 0, proc.stderr
 
 
 @pytest.mark.parametrize(
@@ -225,9 +227,9 @@ def test_allows_read_tools(tool_name: str) -> None:
     [
         "src/collector/foo.py",
         "tests/unit/test_x.py",
-        ".opencode/agent/dev.md",
-        ".opencode/command/bug.md",
-        ".opencode/hooks/dev/pre_tool_use.py",
+        ".claude/agents/dev.md",
+        ".claude/commands/bug.md",
+        ".claude/hooks/dev/pre_tool_use.py",
         "AGENTS.md",
         "PLAN_SPRINT10.md",
         "SPEC.md",
@@ -241,8 +243,8 @@ def test_allows_write_tools_on_any_project_path(path: str) -> None:
 
     > **Sprint 12 (B12.1)**: paths ``.claude/agents/dev.md`` e
     > ``.claude/hooks/dev/pre_tool_use.py`` removidos (unificacao). Os
-    > paths canonicos correspondentes sao ``.opencode/agent/dev.md`` e
-    > ``.opencode/hooks/dev/pre_tool_use.py`` (ja cobertos).
+    > paths canonicos correspondentes sao ``.claude/agents/dev.md`` e
+    > ``.claude/hooks/dev/pre_tool_use.py`` (ja cobertos).
     """
     proc = _run_hook({"tool_name": "Write", "tool_input": {"file_path": path}})
     assert proc.returncode == 0, (

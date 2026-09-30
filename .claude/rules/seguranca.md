@@ -15,10 +15,10 @@ Restrições que valem para qualquer agent (code-reviewer, dfe-agent e futuros).
   (`src/utils/throttler.py`). Não burlar.
 - **Guardrails invioláveis**: `src/utils/http_guard.py` (guard HTTP in-process)
   bloqueia URL fora de `ALLOWED_DOMAINS` via `validate_url()` importado de
-  `hooks.domain_guard`. O modulo `.opencode/hooks/domain_guard.py` eh o
+  `hooks.domain_guard`. O modulo `.claude/hooks/domain_guard.py` eh o
   guardrail canonico; nunca desative `install_http_guard()` no coletor.
   > **Sprint 11 B11.2**: `.claude/hooks/manifest.json` foi REMOVIDO
-  > (era "letra morta" desde Sprint 5 C.1; opencode nao suporta nativamente
+  > (era "letra morta" desde Sprint 5 C.1; o OpenCode nao suportava nativamente
   > o tipo `pre_request`). A defesa em profundidade contra URL maliciosa
   > vive agora apenas no guard HTTP in-process (`src/utils/http_guard.py`)
   > + hook `code-reviewer/pre_tool_use_bash.py` (bloqueia `curl`/`wget`).

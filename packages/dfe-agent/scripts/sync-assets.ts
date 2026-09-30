@@ -1,5 +1,5 @@
 /**
- * sync-assets.ts — copia .opencode/agent/dfe-agent.md e .opencode/skills/dfe-fiscal/
+ * sync-assets.ts — copia .claude/agents/dfe-agent.md e .claude/skills/dfe-fiscal/
  * para packages/dfe-agent/dist/.
  *
  * Convencao (Sprint 14 B.3): fonte canonica mora no DFe-Agent root; copia
@@ -27,12 +27,12 @@ interface SyncPair {
 
 const PAIRS: SyncPair[] = [
   {
-    src: resolve(DFE_ROOT, ".opencode/agent/dfe-agent.md"),
+    src: resolve(DFE_ROOT, ".claude/agents/dfe-agent.md"),
     dst: resolve(PKG_ROOT, "dist/agent.md"),
     isDir: false,
   },
   {
-    src: resolve(DFE_ROOT, ".opencode/skills/dfe-fiscal"),
+    src: resolve(DFE_ROOT, ".claude/skills/dfe-fiscal"),
     dst: resolve(PKG_ROOT, "dist/skill/dfe-fiscal"),
     isDir: true,
   },

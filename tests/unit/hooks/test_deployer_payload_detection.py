@@ -23,7 +23,7 @@ PROJECT_ROOT: Path = Path(__file__).resolve().parents[3]
 # Adiciona path para _lib
 sys.path.insert(
     0,
-    str(PROJECT_ROOT / ".opencode" / "hooks"),
+    str(PROJECT_ROOT / ".claude" / "hooks"),
 )
 
 from _lib.payload import detect_active_agent  # type: ignore[no-redef]

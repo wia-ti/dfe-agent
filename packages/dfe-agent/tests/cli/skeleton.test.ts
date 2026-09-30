@@ -25,13 +25,13 @@ test("commands/install.ts existe e expoe install()", () => {
   assert.ok(existsSync(p));
   const src = readFileSync(p, "utf8");
   assert.match(src, /export (async )?function install/);
-  // Deve copiar para .opencode/
-  assert.match(src, /\.opencode\/agent\/dfe-agent\.md|\.opencode\\agent\\dfe-agent\.md/);
-  assert.match(src, /\.opencode\/skills\/dfe-fiscal|\.opencode\\skills\\dfe-fiscal/);
+  // Deve copiar para .claude/
+  assert.match(src, /\.claude\/agents\/dfe-agent\.md|agents\/dfe-agent\.md/);
+  assert.match(src, /skills\/dfe-fiscal/);
 });
 
 test("dist/agent.md existe (pre-requisito para install copiar)", () => {
-  // C.1 install copia dist/* para .opencode/. dist/* deve estar populado.
+  // C.1 install copia dist/* para .claude/. dist/* deve estar populado.
   const distAgent = resolve(PKG_ROOT, "dist/agent.md");
   assert.ok(existsSync(distAgent), "dist/agent.md deve existir (sincronizado via Fase B)");
   const distSkill = resolve(PKG_ROOT, "dist/skill/dfe-fiscal/SKILL.md");

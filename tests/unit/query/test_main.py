@@ -33,7 +33,7 @@ def _run_cli(*args: str, cwd: Path) -> subprocess.CompletedProcess:
     Para reduzir uso de memoria do OpenBLAS em subprocessos Windows,
     limitamos ``OPENBLAS_NUM_THREADS=1`` e ``OMP_NUM_THREADS=1``.
 
-    PLAN_SPRINT5 A.1: prepende ``.opencode`` em ``PYTHONPATH`` para que
+    PLAN_SPRINT5 A.1: prepende ``.claude`` em ``PYTHONPATH`` para que
     ``src.utils.http_guard_bootstrap`` consiga importar ``hooks.domain_guard``
     no subprocess.
 

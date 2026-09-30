@@ -21,7 +21,7 @@ Importado por:
 Historico (pre-Sprint 11):
     - Antes da Sprint 11, este modulo tambem era invocado como CLI
       ``python .opencode/hooks/domain_guard.py <url>`` pelo
-      ``.opencode/hooks/manifest.json`` (``type: pre_request``).
+      antigo ``manifest.json`` do OpenCode (``type: pre_request``).
       Como opencode nao suporta nativamente esse tipo de hook (Sprint 5 C.1),
       a forma CLI era letra morta desde 2026-08-26. O bloco
       ``if __name__ == "__main__"`` foi removido em Sprint 11.

@@ -1,4 +1,4 @@
-"""Testes unit do hook ``.opencode/hooks/deployer/stop.py`` (PLAN_SPRINT18 / Task 2.3).
+"""Testes unit do hook ``.claude/hooks/deployer/stop.py`` (PLAN_SPRINT18 / Task 2.3).
 
 Cobre:
 
@@ -22,7 +22,7 @@ from pathlib import Path
 import pytest
 
 PROJECT_ROOT: Path = Path(__file__).resolve().parents[3]
-HOOK_SCRIPT: Path = PROJECT_ROOT / ".opencode" / "hooks" / "deployer" / "stop.py"
+HOOK_SCRIPT: Path = PROJECT_ROOT / ".claude" / "hooks" / "deployer" / "stop.py"
 
 
 def _run_hook(payload: dict[str, object]) -> subprocess.CompletedProcess[str]:

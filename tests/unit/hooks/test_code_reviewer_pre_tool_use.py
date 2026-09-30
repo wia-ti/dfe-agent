@@ -1,4 +1,4 @@
-"""Testes unit do hook ``.opencode/hooks/code-reviewer/pre_tool_use.py`` (PLAN_SPRINT9 / I9.2 + Sprint 12 B12.1).
+"""Testes unit do hook ``.claude/hooks/code-reviewer/pre_tool_use.py`` (PLAN_SPRINT9 / I9.2 + Sprint 12 B12.1).
 
 Cobre cada tool interceptada pelo ``_WRITE_TOOLS`` (Write / Edit /
 MultiEdit / NotebookEdit) e cada tool read-only que o agent tem
@@ -11,7 +11,7 @@ Estrategia: ``subprocess.run`` com ``sys.executable`` (padrao de
 detalhes internos de import do hook.
 
 > **Sprint 12 (B12.1)**: hook movido de ``.claude/hooks/code-reviewer/``
-> para ``.opencode/hooks/code-reviewer/``.
+> para ``.claude/hooks/code-reviewer/``.
 """
 from __future__ import annotations
 
@@ -25,7 +25,7 @@ import pytest
 
 PROJECT_ROOT: Path = Path(__file__).resolve().parents[3]
 HOOK_SCRIPT: Path = (
-    PROJECT_ROOT / ".opencode" / "hooks" / "code-reviewer" / "pre_tool_use.py"
+    PROJECT_ROOT / ".claude" / "hooks" / "code-reviewer" / "pre_tool_use.py"
 )
 LOG_PATH: Path = PROJECT_ROOT / "storage" / "agent_hooks.log"
 

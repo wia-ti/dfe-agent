@@ -9,7 +9,7 @@ Contrato:
     - `extract_text_from_html(str) -> str`
     - `extract_links(str, base_url, allowed_domains=None) -> list[str]`
 
-`extract_links` usa `ALLOWED_DOMAINS` do hook `.opencode/hooks/allowed_domains.py`
+`extract_links` usa `ALLOWED_DOMAINS` do hook `.claude/hooks/allowed_domains.py`
 como default. Aceita override explicito para testes e para uso por outros
 modulos que precisem de um filtro mais amplo ou restrito.
 """

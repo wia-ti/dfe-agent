@@ -1,7 +1,7 @@
 {
   "name": "@wiati/dfe-agent",
   "version": "0.1.5",
-  "description": "Agente opencode + base RAG com documentacao fiscal eletronica oficial brasileira (NF-e, NFC-e, CT-e, MDF-e, SPED) distribuido como pacote npm.",
+  "description": "Subagent Claude Code + base RAG com documentacao fiscal eletronica oficial brasileira (NF-e, NFC-e, CT-e, MDF-e, SPED) distribuido como pacote npm.",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -41,7 +41,7 @@
     "nfe",
     "fiscal",
     "rag",
-    "opencode"
+    "claude-code"
   ],
   "license": "MIT",
   "repository": {

@@ -1,4 +1,4 @@
-"""Testes do helper `.opencode/hooks/_lib/test_runner.py` (PLAN_SPRINT10 B.4 + PLAN_SPRINT11 C + Sprint 12 B12.1).
+"""Testes do helper `.claude/hooks/_lib/test_runner.py` (PLAN_SPRINT10 B.4 + PLAN_SPRINT11 C + Sprint 12 B12.1).
 
 Cobre `suites_for_path(rel_path, agent)`:
 
@@ -11,7 +11,7 @@ Cobre `suites_for_path(rel_path, agent)`:
   lista de suites e' vazia.
 
 > **Sprint 12 (B12.1)**: helper movido de ``.claude/hooks/_lib/`` para
-> ``.opencode/hooks/_lib/``.
+> ``.claude/hooks/_lib/``.
 """
 from __future__ import annotations
 
@@ -21,7 +21,7 @@ from pathlib import Path
 import pytest
 
 PROJECT_ROOT: Path = Path(__file__).resolve().parents[3]
-TEST_RUNNER: Path = PROJECT_ROOT / ".opencode" / "hooks" / "_lib" / "test_runner.py"
+TEST_RUNNER: Path = PROJECT_ROOT / ".claude" / "hooks" / "_lib" / "test_runner.py"
 
 
 def _load():
@@ -77,8 +77,8 @@ def test_legacy_agent_returns_empty(tr, legacy_slug: str) -> None:
 
 
 def test_dev_returns_empty_for_unmatched_path(tr) -> None:
-    """Path fora de qualquer tabela (ex.: `.opencode/agent/dev.md`) -> []."""
-    suites = tr.suites_for_path(".opencode/agent/dev.md", agent="dev")
+    """Path fora de qualquer tabela (ex.: `.claude/agents/dev.md`) -> []."""
+    suites = tr.suites_for_path(".claude/agents/dev.md", agent="dev")
     assert suites == [], (
         f"Path fora do escopo de pytest deveria retornar []; obtido {suites}"
     )

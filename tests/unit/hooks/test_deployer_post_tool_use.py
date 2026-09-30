@@ -1,4 +1,4 @@
-"""Testes unit do hook ``.opencode/hooks/deployer/post_tool_use.py`` (PLAN_SPRINT18 / Task 2.3).
+"""Testes unit do hook ``.claude/hooks/deployer/post_tool_use.py`` (PLAN_SPRINT18 / Task 2.3).
 
 Cobre:
 
@@ -22,7 +22,7 @@ import pytest
 
 PROJECT_ROOT: Path = Path(__file__).resolve().parents[3]
 HOOK_SCRIPT: Path = (
-    PROJECT_ROOT / ".opencode" / "hooks" / "deployer" / "post_tool_use.py"
+    PROJECT_ROOT / ".claude" / "hooks" / "deployer" / "post_tool_use.py"
 )
 LOG_PATH: Path = PROJECT_ROOT / "storage" / "agent_hooks.log"
 

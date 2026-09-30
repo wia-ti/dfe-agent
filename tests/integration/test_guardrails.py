@@ -235,7 +235,7 @@ def test_guardrail_active_in_collector_subprocess(
           ``requests.get``.
     """
     project_root: Path = Path(__file__).resolve().parents[2]
-    opencode_path: Path = project_root / ".opencode"
+    opencode_path: Path = project_root / ".claude"
     wrapper = (
         "import sys, json\n"
         f"sys.path.insert(0, r'{str(opencode_path).replace(chr(92), '/')}')\n"
@@ -607,10 +607,10 @@ def test_guardrail_response_cites_source(
         if not k.startswith(("COVERAGE_", "PYTEST_"))
     }
     existing_pp = env.get("PYTHONPATH", "")
-    # PLAN_SPRINT5 A.1: prepende tambem ``.opencode`` em PYTHONPATH
+    # PLAN_SPRINT5 A.1: prepende tambem ``.claude`` em PYTHONPATH
     # para que ``src.utils.http_guard_bootstrap`` consiga importar
     # ``hooks.domain_guard`` no subprocess CLI.
-    opencode_path: Path = project_root / ".opencode"
+    opencode_path: Path = project_root / ".claude"
     pp_parts: list[str] = [str(project_root), str(opencode_path)]
     if existing_pp:
         pp_parts.append(existing_pp)
