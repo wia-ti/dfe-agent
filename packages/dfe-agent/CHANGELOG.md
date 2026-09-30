@@ -2,6 +2,17 @@
 
 Todas as mudancas notaveis neste projeto sao documentadas aqui.
 
+## 0.2.0 — 2026-09-30 (Sprint 19 — migracao para Claude Code)
+
+### Changed
+- **`dfe-agent install` passa a copiar para `.claude/`** do projeto consumidor: `.claude/agents/dfe-agent.md` (subagent Claude Code) e `.claude/skills/dfe-fiscal/`. Ate' a 0.1.5 o destino era `.opencode/agent/` e `.opencode/skills/` (OpenCode).
+- Fontes do sync (`npm run sync` / `drift-check`) passam a ser `.claude/agents/dfe-agent.md` e `.claude/skills/dfe-fiscal/` no DFe-Agent root.
+- `dist/agent.md` agora tem frontmatter de subagent Claude Code (`tools:`, `skills: [dfe-fiscal]`, `model: inherit`).
+
+### Notes
+- Minor bump (0.1.5 -> 0.2.0): muda o destino do `install`. Consumidores OpenCode devem continuar na 0.1.5.
+- API do CLI (`install`, `update`, `query`, `status`) e contrato `{answer, sources[]}` inalterados.
+
 ## 0.1.5 — 2026-08-27 (Sprint 17 bugfix — embedding normalization drift)
 
 ### Fixed
