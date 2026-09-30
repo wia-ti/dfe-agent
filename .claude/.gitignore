@@ -1,0 +1,5 @@
+settings.local.json
+node_modules/
+rag/rag.db
+rag/rag.db-*
+rag/knowledge/_pending-*
