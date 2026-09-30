@@ -1,0 +1,31 @@
+{
+  "branches": ["main"],
+  "tagFormat": "v${version}",
+  "plugins": [
+    ["@semantic-release/commit-analyzer", { "preset": "conventionalcommits" }],
+    ["@semantic-release/release-notes-generator", { "preset": "conventionalcommits" }],
+    ["@semantic-release/changelog", { "changelogFile": "packages/dfe-agent/CHANGELOG.md" }],
+    ["@semantic-release/npm", { "pkgRoot": "packages/dfe-agent" }],
+    [
+      "@semantic-release/exec",
+      {
+        "verifyConditionsCmd": "bash .github/scripts/attach-rag-base.sh --verify",
+        "prepareCmd": "python .github/scripts/set_pyproject_version.py ${nextRelease.version}",
+        "successCmd": "bash .github/scripts/attach-rag-base.sh ${nextRelease.gitTag}"
+      }
+    ],
+    [
+      "@semantic-release/git",
+      {
+        "assets": [
+          "packages/dfe-agent/CHANGELOG.md",
+          "packages/dfe-agent/package.json",
+          "packages/dfe-agent/package-lock.json",
+          "pyproject.toml"
+        ],
+        "message": "chore(release): ${nextRelease.version} [skip ci]\n\n${nextRelease.notes}"
+      }
+    ],
+    "@semantic-release/github"
+  ]
+}

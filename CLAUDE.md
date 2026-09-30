@@ -2,7 +2,7 @@
 
 > Agente local que coleta documentacao fiscal eletronica oficial (NF-e, NFC-e, CT-e, MDF-e, SPED) e legislacao fiscal eletronica oficial, indexa em base RAG local e responde perguntas em linguagem natural fundamentadas em notas tecnicas.
 
-Este arquivo e' o contexto do projeto para o **Claude Code**. O historico completo de decisoes (Sprints 2 a 18) continua em `AGENTS.md` > "Decisoes resolvidas (Sprint N)": leia a secao da sprint relevante quando precisar do porque de uma escolha. As regras detalhadas ficam em `.claude/rules/` (carregadas automaticamente; `src.md` e `tests.md` so' valem para seus paths).
+Este arquivo e' o contexto do projeto para o **Claude Code**. O historico completo de decisoes (Sprints 2 a 20) continua em `AGENTS.md` > "Decisoes resolvidas (Sprint N)": leia a secao da sprint relevante quando precisar do porque de uma escolha. As regras detalhadas ficam em `.claude/rules/` (carregadas automaticamente; `src.md` e `tests.md` so' valem para seus paths).
 
 ## Harness Claude Code
 
@@ -10,7 +10,8 @@ Este arquivo e' o contexto do projeto para o **Claude Code**. O historico comple
 |---|---|---|
 | Agente padrao (`@dev`) | sessao principal | Owner de todas as alteracoes; ver "Agente padrao" abaixo |
 | `code-reviewer` | `.claude/agents/code-reviewer.md` | Revisao read-only (BLOQUEANTE/IMPORTANTE/SUGESTAO) |
-| `deployer` | `.claude/agents/deployer.md` | Unico que faz `git push`/`git tag`/`npm publish`/`gh release` |
+| `deployer` | `.claude/agents/deployer.md` | Unico que faz `git push` e publica a base na release `rag-base` |
+| GitHub Actions | `.github/workflows/release.yml` + `.releaserc.json` | semantic-release: tag `vX.Y.Z`, CHANGELOG, GitHub Release, `npm publish` |
 | `dfe-agent` | `.claude/agents/dfe-agent.md` | Responde duvidas fiscais pela base RAG, sempre com `Fontes:` |
 | `/feature`, `/bug`, `/duvida` | `.claude/commands/` | Pipelines do `@dev` (TDD + review + RAG meta) |
 | `/deploy` | `.claude/skills/deploy/` | Roda no subagent `deployer` (`context: fork`) |
@@ -24,12 +25,12 @@ O dispatcher escolhe o perfil de hooks pelo `agent_type` do payload: sem `agent_
 
 A sessao principal faz o papel do antigo agent `@dev`:
 
-- Owner de `src/`, `tests/`, `.claude/`, `AGENTS.md`, `CLAUDE.md`, `PLAN*.md`, `SPEC.md`, `requirements.txt`, `pyproject.toml`, `scripts/`. `storage/` e' so' leitura; escrita na base passa por `apply_pending`, `RagIndexer.ingest_pending` e `python -m src.ragctl reindex`.
+- Owner de `src/`, `tests/`, `.claude/`, `AGENTS.md`, `CLAUDE.md`, `PLAN*.md`, `SPEC.md`, `requirements.txt`, `pyproject.toml`, `scripts/`. `storage/` e' so' leitura; escrita na base passa por `apply_pending`, `RagIndexer.ingest_pending` e `python -m src.ragctl reindex`. A unica escrita do `@dev` em `storage/` e' o `python -m src.ragctl export` (gera `dfe.db.gz` + `.sha256` sem tocar o `dfe.db`).
 - Nao emite documentos fiscais nem responde duvida de dominio fiscal: delegue ao subagent `dfe-agent`.
 - Revisao read-only: delegue ao subagent `code-reviewer` (Agent tool).
-- Publicacao: use `/deploy` (subagent `deployer`). O `@dev` **nao commita, nao faz push, nao abre PR**; o humano fecha o commit.
+- Commit: o `@dev` commita ao fim de cada entrega, sempre em **Conventional Commits** (`feat`, `fix`, `perf`, `refactor`, `docs`, `test`, `build`, `ci`, `chore`, `style`, `revert`; o hook recusa outra mensagem), porque o tipo decide a proxima versao. Mensagem via `-m "<cabecalho>" -m "<corpo>"` (um `-m` por paragrafo) ou `-F <arquivo>` escrito com Write; heredoc e `$(cat <<EOF)` caem no bloqueio de redirecionamento. O `@dev` **nao faz push** nem abre PR: publicacao e' `/deploy` (subagent `deployer`). Ver "Versionamento e publicacao".
 - Workflow: briefing (`AGENTS.md`, `SPEC.md`, `PLAN.md`, `.claude/rules/`) -> RAG antes (`npx tsx .claude/rag/search.ts -q "<tema>" -a dev --top-k 5`) -> plano com TodoWrite -> TDD (vermelho primeiro) -> `pytest tests/ --cov=src --cov-fail-under=80` -> code review -> loop corretivo ate' 0 BLOQUEANTE / 0 IMPORTANTE (max 3 iteracoes) -> RAG depois (`.claude/rag/knowledge/<data>-dev-<contexto>.md` + `npx tsx .claude/rag/embed.ts --file <md>`) -> atualizar `AGENTS.md` com as decisoes da sprint.
-- Hooks do perfil `dev`: PreToolUse bloqueia `git push`, `gh pr create`, `gh release`, `pip install`/`poetry add`, `curl`/`wget`, `rm -rf`, `sed -i`, redirecionamento `>`/`<`/`tee`, SQL direto em `*.db`, `npx tsx .claude/rag/(embed|search|summarize).ts` e o pipeline RAG (`src.collector --once`, `src.indexer.ingest`, `src.ragctl migrate|reindex|benchmark`). Escapes: `python -m src.ragctl stats` e `python -m src.collector --diagnose-net`. PostToolUse roda a suite pytest do arquivo editado. Stop roda `pytest tests/` quando o turno editou arquivos e bloqueia o encerramento se falhar (uma vez por ciclo).
+- Hooks do perfil `dev`: PreToolUse bloqueia `git push`, `gh pr create`, `gh release`, commit fora de Conventional Commits, versionamento manual (`git tag v*`, `npm publish`, `npm version`), `pip install`/`poetry add`, `curl`/`wget`, `rm -rf`, `sed -i`, redirecionamento `>`/`<`/`tee`, SQL direto em `*.db`, `npx tsx .claude/rag/(embed|search|summarize).ts` e o pipeline RAG (`src.collector --once`, `src.indexer.ingest`, `src.ragctl migrate|reindex|benchmark`). Escapes: `python -m src.ragctl stats` e `python -m src.collector --diagnose-net`. PostToolUse roda a suite pytest do arquivo editado. Stop roda `pytest tests/` quando o turno editou arquivos e bloqueia o encerramento se falhar (uma vez por ciclo).
 
 ## Stack
 
@@ -41,7 +42,7 @@ A sessao principal faz o papel do antigo agent `@dev`:
 | Embeddings | `sentence-transformers` `paraphrase-multilingual-MiniLM-L12-v2` (trocavel via `DFE_EMBEDDING_MODEL`; `DFE_EMBEDDING_DTYPE=float16` reduz RAM) |
 | Busca textual | FTS5 (BM25) |
 | RAG meta-cognitivo | SQLite + `sqlite-vec` dim 384, `all-MiniLM-L6-v2` via `@xenova/transformers`, rodado com `tsx` |
-| Pacote npm | `@wiati/dfe-agent` em `packages/dfe-agent/` (tag `packages-v*.*.*`) |
+| Pacote npm | `@wiati/dfe-agent` em `packages/dfe-agent/` (versao = tag `vX.Y.Z` do semantic-release) |
 | Execucao | 100% local |
 
 ## Como rodar
@@ -54,6 +55,7 @@ python -m src.collector --once        # varredura dos portais
 python -m src.indexer.ingest          # ingestao dos pendentes
 python -m src.query "<pergunta>"      # --hybrid | --hierarchical | --rerank | --no-cache
 python -m src.ragctl stats            # contadores da base
+python -m src.ragctl export           # dfe.db.gz + dfe.db.gz.sha256 para a release rag-base
 pytest tests/                         # suite completa
 pytest tests/unit/ --cov=src --cov-fail-under=80
 cd packages/dfe-agent && npm test && npm run drift-check
@@ -85,7 +87,15 @@ Modos de busca: semantica (default, cosseno + dedup + boost temporal), `--hybrid
 - Emitir documento fiscal, substituir contador ou dar opiniao legal/contabil.
 - Reprocessar documento `ingerido` (idempotencia por `content_hash`).
 - Dropar `vec_chunks` sem backfill (use `python -m src.ragctl reindex`).
-- Recriar CI em `.github/workflows/` (removido na Sprint 18; publicacao via `/deploy`).
+- Versionar na mao: tag `vX.Y.Z`, `npm publish`, `npm version` e release `v*` sao do semantic-release.
+- Commitar a base RAG (`storage/dfe.db.gz`, `data/`): ela vive no GitHub Releases; no git so' o `.sha256`.
+- Ressuscitar os workflows removidos na Sprint 18 (`test-npm-package.yml`, `publish-npm.yml`, `publish-base.yml`); o unico workflow e' `release.yml`.
+
+## Versionamento e publicacao
+
+- **Codigo**: `@dev` commita (Conventional Commits) -> `/deploy` faz o push -> na `main`, o workflow `release` roda os testes do pacote e o **semantic-release**: `fix`/`perf` = patch, `feat` = minor, `!` ou `BREAKING CHANGE` = major; `docs`/`chore`/`test`/`refactor` nao geram versao. Ele cria a tag `vX.Y.Z`, atualiza `packages/dfe-agent/CHANGELOG.md`, `package.json` e `pyproject.toml` (commit `chore(release)` com `[skip ci]`), cria a GitHub Release e publica o `@wiati/dfe-agent` no npm.
+- **Base RAG**: nao e' versionada no git (`storage/dfe.db.gz` e `data/` no `.gitignore`). Depois que o humano coleta/ingere (`src.collector --once` e `src.indexer.ingest` sao bloqueados para agents), o `@dev` roda `python -m src.ragctl export` -> commit `fix(rag): atualizar base RAG ...` com `storage/dfe.db.gz.sha256` -> `/deploy --base` (upload na release rolante `rag-base` e push). O CI (`.github/scripts/attach-rag-base.sh`) copia a base da `rag-base` para a release `vX.Y.Z`, conferindo o sha versionado; `npx dfe-agent update` baixa da release mais recente.
+- **Pre-requisitos no GitHub**: secret `NPM_TOKEN` (token de automacao do npm com acesso ao escopo `@wiati`) e permissao de escrita do `GITHUB_TOKEN` na `main` (o semantic-release faz push do commit de release).
 
 ## Distribuicao npm
 

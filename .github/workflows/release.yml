@@ -1,0 +1,78 @@
+# Versionamento automatico (Sprint 20). A cada push na main:
+#   1. test: lint + build + testes do pacote @wiati/dfe-agent.
+#   2. release: semantic-release le os Conventional Commits desde a ultima tag
+#      vX.Y.Z e, se houver feat/fix/perf/breaking, cria tag + CHANGELOG +
+#      GitHub Release, publica no npm e anexa a base RAG da release `rag-base`.
+# A base RAG nao vive no git: e' publicada na release `rag-base` pelo `/deploy --base`.
+name: release
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: packages/dfe-agent
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: packages/dfe-agent/package-lock.json
+      - run: npm ci
+      - run: npm run lint
+      - run: npm test
+
+  release:
+    needs: test
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: packages/dfe-agent/package-lock.json
+      # prepareCmd atualiza o pyproject.toml com Python.
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      # O `npm publish` do semantic-release dispara o prepack (build + sync dos
+      # assets agent.md/skill para dist/).
+      - name: Dependencias do pacote
+        working-directory: packages/dfe-agent
+        run: npm ci
+      - name: semantic-release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NPM_CONFIG_PROVENANCE: "true"
+        run: >-
+          npx --yes
+          -p semantic-release@24.2.0
+          -p @semantic-release/changelog@6.0.3
+          -p @semantic-release/exec@6.0.3
+          -p @semantic-release/git@10.0.1
+          -p conventional-changelog-conventionalcommits@8.0.0
+          semantic-release

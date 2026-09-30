@@ -25,7 +25,7 @@ Subagent Claude Code + base RAG com documentacao fiscal eletronica oficial brasi
   - `query "<pergunta>"` — busca semantica/FTS5/hibrida, retorna JSON
   - `status` — info da base instalada (path, mtime, doc count, schema)
 
-- **Base RAG pre-buildada** — gerada no CI do DFe-Agent (Python pipeline) e distribuida via GitHub Releases como `dfe.db.gz` + `dfe.db.gz.sha256`. Tamanho: ~30MB gzipped.
+- **Base RAG pre-buildada** — gerada pelo pipeline Python do DFe-Agent e distribuida via GitHub Releases como `dfe.db.gz` + `dfe.db.gz.sha256` (anexada a cada release `vX.Y.Z`). Tamanho: ~70MB gzipped.
 
 ## Install
 
@@ -126,12 +126,17 @@ Drift detectado em CI = PR bloqueado.
 ## Como o pacote funciona (arquitetura)
 
 ```
-DFe-Agent root (CI em cada release v*.*.*)
+DFe-Agent root (maquina do mantenedor)
   │
   ├── python -m src.collector --once       # varre portais oficiais
   ├── python -m src.indexer.ingest          # gera embeddings
-  ├── gzip storage/dfe.db > dfe.db.gz       # ~30MB
-  └── upload asset em GitHub Release
+  ├── python -m src.ragctl export           # dfe.db.gz + dfe.db.gz.sha256
+  └── /deploy --base                        # upload na release rolante `rag-base`
+            │
+            ▼
+  GitHub Actions (semantic-release a cada push na main)
+    ├── tag vX.Y.Z + CHANGELOG + GitHub Release + npm publish
+    └── copia dfe.db.gz da `rag-base` para a release vX.Y.Z
             │
             ▼
   npx dfe-agent update (consumer)

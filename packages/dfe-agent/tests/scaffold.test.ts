@@ -94,6 +94,14 @@ test("src/index.ts expoe VERSION e runCli", () => {
   assert.match(idx, /export.*runCli.*from.*cli/);
 });
 
+test("VERSION vem do package.json (semantic-release e' o dono da versao)", async () => {
+  const pkg = JSON.parse(readFileSync(resolve(PKG_ROOT, "package.json"), "utf8"));
+  const { VERSION } = await import("../src/index.ts");
+  assert.equal(VERSION, pkg.version);
+  const idx = readFileSync(resolve(PKG_ROOT, "src/index.ts"), "utf8");
+  assert.doesNotMatch(idx, /export const VERSION\s*=\s*["']\d/);
+});
+
 test("README.md e CHANGELOG.md existem com secoes minimas", () => {
   const readme = readFileSync(resolve(PKG_ROOT, "README.md"), "utf8");
   const changelog = readFileSync(resolve(PKG_ROOT, "CHANGELOG.md"), "utf8");

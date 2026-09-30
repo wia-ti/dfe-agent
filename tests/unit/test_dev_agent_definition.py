@@ -52,8 +52,11 @@ def test_section_mentions_subagent_code_reviewer(dev_section: str) -> None:
     assert "code-reviewer" in dev_section
 
 
-def test_section_forbids_commit_and_push(dev_section: str) -> None:
-    assert "nao commita" in dev_section.lower()
+def test_section_commits_but_does_not_push(dev_section: str) -> None:
+    """Sprint 20: o `@dev` commita (Conventional Commits); push e' do `/deploy`."""
+    text = dev_section.lower()
+    assert "conventional commits" in text
+    assert "nao faz push" in text
 
 
 def test_claude_md_mentions_never_make_invariants(claude_text: str) -> None:

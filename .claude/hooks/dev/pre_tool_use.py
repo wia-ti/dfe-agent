@@ -6,7 +6,9 @@ bloqueia acoes globais perigosas (defesa em profundidade — alem do
 `permission.*` no frontmatter).
 
 Comandos BLOQUEADOS:
-    - git push / gh pr create / gh release (acao humana)
+    - git push / gh pr create / gh release (push e' do `/deploy`)
+    - `git commit` fora de Conventional Commits e versionamento manual
+      (tag v*, npm publish/version): o semantic-release e' o dono (Sprint 20)
     - pip install / poetry add (dependencias via PLAN/SPEC)
     - curl/wget (downloads HTTP vao pelo DocumentCollector)
     - rm -rf, sed -i, redirecionamento `>` (escrita shell)
@@ -32,6 +34,10 @@ if __package__:
         get_tool_name,
         log_event,
     )
+    from .._lib.release_policy import (
+        commit_message_violation,
+        manual_release_violation,
+    )
 else:
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
     from _lib.payload import (  # type: ignore[no-redef]
@@ -40,6 +46,10 @@ else:
         get_command,
         get_tool_name,
         log_event,
+    )
+    from _lib.release_policy import (  # type: ignore[no-redef]
+        commit_message_violation,
+        manual_release_violation,
     )
 
 
@@ -56,7 +66,7 @@ _RM_RF: re.Pattern[str] = re.compile(
 _BLOCKED_BASH: list[tuple[re.Pattern[str], str]] = [
     (
         re.compile(r"\bgit\s+push\b|\bgh\s+pr\s+create\b|\bgh\s+release\b"),
-        "@dev nao faz push / abre PR (acao humana)",
+        "@dev nao faz push nem release: use `/deploy` (push) ou `/deploy --base` (base RAG)",
     ),
     (
         re.compile(r"\bpip\s+install\b|\bpoetry\s+(add|install|remove)\b"),
@@ -96,7 +106,13 @@ _ALLOWED_RAGCTL_READONLY: list[tuple[re.Pattern[str], str]] = [
 ]
 
 
+_SHELL_CHAINING: re.Pattern[str] = re.compile(r"&&|\|\||[;|&`]|\$\(")
+
+
 def _is_ragctl_readonly(cmd: str) -> bool:
+    # So' o comando isolado: `ragctl stats && npm publish` nao pode pular os gates.
+    if _SHELL_CHAINING.search(cmd):
+        return False
     return any(p.search(cmd) for p, _ in _ALLOWED_RAGCTL_READONLY)
 
 
@@ -143,6 +159,11 @@ def main() -> int:
             block(
                 f"[dev] BLOQUEADO: {reason}. Comando: `{cmd[:120]}`"
             )
+
+    policy_reason = manual_release_violation(cmd) or commit_message_violation(cmd)
+    if policy_reason:
+        log_event(agent, "pre_tool_use_block_release_policy", f"{policy_reason[:60]}: {cmd[:80]}")
+        block(f"[dev] BLOQUEADO: {policy_reason}. Comando: `{cmd[:120]}`")
 
     return 0
 

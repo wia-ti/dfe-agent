@@ -230,13 +230,13 @@ def test_deploy_command_calls_embed_ts_in_final_phase() -> None:
 
 
 def test_deploy_command_documents_modes() -> None:
-    """`/deploy` documenta os 4 modos canonicos: bare, --tag, --npm, --release."""
+    """Sprint 20: `/deploy` tem 2 modos (bare e `--base`); tag/npm/release sao do semantic-release."""
     text = _read("deploy")
-    for flag in ("--tag", "--npm", "--release"):
-        assert flag in text, (
-            f"`/deploy` deve documentar o modo `{flag}` (D18.4). "
-            f"Texto (primeiros 800 chars):\n{text[:800]}"
-        )
+    assert "--base" in text, "`/deploy` deve documentar o modo `--base` (base RAG na release)."
+    assert "rag-base" in text, "`/deploy --base` publica na release rolante `rag-base`."
+    assert "semantic-release" in text, (
+        "`/deploy` deve explicar que tag/npm/release vX.Y.Z sao do semantic-release."
+    )
 
 
 def test_deploy_command_has_human_gate() -> None:
@@ -250,9 +250,7 @@ def test_deploy_command_has_human_gate() -> None:
         "`/deploy` deve exigir confirmacao/aprovacao antes de acoes destrutivas."
     )
     # Acoes destrutivas devem ter gate explicito
-    assert "--npm" in text or "--release" in text, (
-        "`/deploy` deve mencionar pelo menos uma das flags destrutivas."
-    )
+    assert "--base" in text, "`/deploy` deve mencionar a flag destrutiva `--base`."
 
 
 def test_no_command_references_legacy_agent_with_deployer_substring() -> None:

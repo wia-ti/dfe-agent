@@ -73,18 +73,13 @@ def _truncate_log() -> None:
         "git push origin main",
         "git push origin feature/foo",
         "git push",
-        "git push --tags",
-        "git push origin v0.1.6",
-        "git push origin --delete v0.1.5",
-        "git push origin :refs/tags/v0.1.5",
+        "git push -u origin feat/release-semantic",
         "git push origin :feature/legacy",
         "git pull --rebase",
         "git pull --rebase origin main",
         "git fetch origin",
         "git fetch --all",
-        "git tag v0.1.6",
-        "git tag -d v0.1.5",
-        "git tag -a v0.1.6 -m 'release 0.1.6'",
+        "git tag --list",
         "git remote -v",
         "git remote set-url origin git@github.com:wia-ti/dfe-agent.git",
         "git branch -d feature/foo",
@@ -96,18 +91,13 @@ def _truncate_log() -> None:
         "git_push_origin_main",
         "git_push_origin_feature",
         "git_push_bare",
-        "git_push_tags",
-        "git_push_origin_tag",
-        "git_push_delete_tag",
-        "git_push_delete_refs_tag",
+        "git_push_upstream_branch",
         "git_push_delete_branch",
         "git_pull_rebase",
         "git_pull_rebase_origin",
         "git_fetch_origin",
         "git_fetch_all",
-        "git_tag",
-        "git_tag_d",
-        "git_tag_a_annotated",
+        "git_tag_list",
         "git_remote_v",
         "git_remote_set_url",
         "git_branch_d",
@@ -133,8 +123,6 @@ def test_allows_git_commands(cmd: str) -> None:
     "cmd",
     [
         "npm login",
-        "npm publish --access public --provenance",
-        "npm publish",
         "npm view @wiati/dfe-agent",
         "npm view @wiati/dfe-agent versions",
         "npm dist-tag add @wiati/dfe-agent@0.1.6 latest",
@@ -144,8 +132,6 @@ def test_allows_git_commands(cmd: str) -> None:
     ],
     ids=[
         "npm_login",
-        "npm_publish_access_public",
-        "npm_publish_bare",
         "npm_view_package",
         "npm_view_versions",
         "npm_dist_tag_add",
@@ -170,26 +156,55 @@ def test_allows_npm_commands(cmd: str) -> None:
 @pytest.mark.parametrize(
     "cmd",
     [
-        "gh release create v1.2.5 --notes 'changelog aqui'",
-        "gh release create v0.0.1-sprint17 storage/dfe.db.gz storage/dfe.db.gz.sha256",
-        "gh release delete v1.2.4",
-        "gh release upload v1.2.5 extra.tar.gz",
+        "gh release create rag-base --title 'Base RAG' --latest=false --notes 'base'",
+        "gh release upload rag-base storage/dfe.db.gz storage/dfe.db.gz.sha256 --clobber",
         "gh release list",
         "gh release view v1.2.5",
+        "gh release view rag-base",
     ],
     ids=[
-        "gh_release_create_with_notes",
-        "gh_release_create_with_assets",
-        "gh_release_delete",
-        "gh_release_upload",
+        "gh_release_create_rag_base",
+        "gh_release_upload_rag_base",
         "gh_release_list",
         "gh_release_view",
+        "gh_release_view_rag_base",
     ],
 )
 def test_allows_gh_release_commands(cmd: str) -> None:
     proc = _run_hook({"tool_name": "Bash", "tool_input": {"command": cmd}})
     assert proc.returncode == 0, (
         f"`{cmd}` deveria ser permitido (allow list do deployer); "
+        f"obtido rc={proc.returncode}, stderr={proc.stderr!r}"
+    )
+
+
+# ============================================================
+# BLOCK LIST — versionamento manual (Sprint 20: semantic-release e' o dono)
+# ============================================================
+
+
+@pytest.mark.parametrize(
+    "cmd",
+    [
+        "npm publish",
+        "npm publish --access public --provenance",
+        "git tag v1.3.0",
+        "git tag -a v1.3.0 -m 'release'",
+        "git push --tags",
+        "git push origin v1.3.0",
+        "git push origin :refs/tags/v1.2.5",
+        "gh release create v1.3.0 --notes 'x'",
+        "gh release upload v1.2.5 storage/dfe.db.gz",
+        "gh release delete v1.2.4",
+        "git commit -m 'fix: nao e papel do deployer'",
+        "python -m src.ragctl stats && npm publish",
+        "python -m src.ragctl stats && git push --tags",
+    ],
+)
+def test_blocks_manual_versioning(cmd: str) -> None:
+    proc = _run_hook({"tool_name": "Bash", "tool_input": {"command": cmd}})
+    assert proc.returncode == 2, (
+        f"`{cmd}` deveria ser bloqueado (semantic-release/@dev); "
         f"obtido rc={proc.returncode}, stderr={proc.stderr!r}"
     )
 

@@ -1,6 +1,6 @@
 """PreToolUse do `@deployer`: allow list explicita + block list defensiva.
 
-Estrategia (PLAN_SPRINT18 D18.3):
+Estrategia (PLAN_SPRINT18 D18.3, revista na Sprint 20):
     - **Allow list** (padrao): git, npm, gh release, npx dfe-agent,
       escape hatch RAG embed, comandos read-only de bash.
     - **Block list** (defesa em profundidade contra bypass):
@@ -8,7 +8,10 @@ Estrategia (PLAN_SPRINT18 D18.3):
       comandos destrutivos (rm -rf, sed -i, >),
       downloads HTTP (curl, wget), pipeline RAG (collector --once,
       indexer.ingest, ragctl {migrate,reindex,benchmark}),
-      pip/poetry install, git commit sem --allow-empty.
+      pip/poetry install, git commit sem --allow-empty (o commit e' do `@dev`).
+    - **Politica de versionamento** (Sprint 20, `_lib/release_policy.py`):
+      tag v*, npm publish e release v* manuais bloqueados (o semantic-release
+      no GitHub Actions e' o dono). A release rolante `rag-base` segue liberada.
 
 Diferenca vs `@dev/pre_tool_use.py`:
     - `@dev`: block list generica (NAO toca paths).
@@ -34,6 +37,10 @@ if __package__:
         get_tool_name,
         log_event,
     )
+    from .._lib.release_policy import (
+        commit_message_violation,
+        manual_release_violation,
+    )
 else:
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
     from _lib.payload import (  # type: ignore[no-redef]
@@ -43,6 +50,10 @@ else:
         get_tool_args,
         get_tool_name,
         log_event,
+    )
+    from _lib.release_policy import (  # type: ignore[no-redef]
+        commit_message_violation,
+        manual_release_violation,
     )
 
 
@@ -112,7 +123,13 @@ _ALLOWED_RAGCTL_READONLY: list[tuple[re.Pattern[str], str]] = [
 ]
 
 
+_SHELL_CHAINING: re.Pattern[str] = re.compile(r"&&|\|\||[;|&`]|\$\(")
+
+
 def _is_ragctl_readonly(cmd: str) -> bool:
+    # So' o comando isolado: `ragctl stats && npm publish` nao pode pular os gates.
+    if _SHELL_CHAINING.search(cmd):
+        return False
     return any(p.search(cmd) for p, _ in _ALLOWED_RAGCTL_READONLY)
 
 
@@ -189,6 +206,13 @@ def main() -> int:
     # ---- Ragctl read-only: passa direto (sem redirecionamento) ----
     if _is_ragctl_readonly(cmd):
         return 0
+
+    # ---- Politica de versionamento (Sprint 20): semantic-release e' o dono ----
+    policy_reason = manual_release_violation(cmd) or commit_message_violation(cmd)
+    if policy_reason:
+        log_event(agent, "pre_tool_use_block_release_policy",
+                  f"{policy_reason[:60]}: {cmd[:80]}")
+        block(f"[deployer] BLOQUEADO: {policy_reason}. Comando: `{cmd[:120]}`")
 
     # ---- Block list (defesa em profundidade) ----
     for pattern, reason in _BLOCKED_BASH:

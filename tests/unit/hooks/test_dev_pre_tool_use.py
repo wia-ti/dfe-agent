@@ -86,6 +86,37 @@ def test_blocks_git_push_and_pr(cmd: str) -> None:
 @pytest.mark.parametrize(
     "cmd",
     [
+        'git commit -m "feat(harness): semantic-release"',
+        "git commit -m 'fix(rag): atualizar base RAG'",
+        "git add storage/dfe.db.gz.sha256",
+    ],
+)
+def test_allows_conventional_commits(cmd: str) -> None:
+    """Sprint 20: o `@dev` commita (Conventional Commits); push e' do `/deploy`."""
+    proc = _run_hook({"tool_name": "Bash", "tool_input": {"command": cmd}})
+    assert proc.returncode == 0, f"`{cmd}` deveria passar; stderr={proc.stderr!r}"
+
+
+@pytest.mark.parametrize(
+    "cmd",
+    [
+        'git commit -m "ajustes diversos"',
+        "python -m src.ragctl stats && npm publish",
+        "python -m src.ragctl stats && pip install foo",
+        "npm publish",
+        "npm version patch",
+        "git tag v1.3.0",
+    ],
+)
+def test_blocks_non_conventional_commit_and_manual_versioning(cmd: str) -> None:
+    proc = _run_hook({"tool_name": "Bash", "tool_input": {"command": cmd}})
+    assert proc.returncode == 2, f"`{cmd}` deveria ser bloqueado; stderr={proc.stderr!r}"
+    assert "BLOQUEADO" in proc.stderr
+
+
+@pytest.mark.parametrize(
+    "cmd",
+    [
         "pip install requests",
         "pip install -r requirements.txt",
         "poetry add pytest",

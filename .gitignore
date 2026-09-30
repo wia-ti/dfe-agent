@@ -72,6 +72,13 @@ data/*.sqlite3
 *.db-wal
 *.db-shm
 
+# Base RAG fora do git (Sprint 20): o dfe.db.gz vive na GitHub Release `rag-base`
+# (publicada por `/deploy --base`) e e' anexado a cada vX.Y.Z pelo semantic-release.
+# So' o sha fica versionado: storage/dfe.db.gz.sha256.
+storage/dfe.db.gz
+storage/.dfe.db.gz.snapshot
+data/
+
 # Harness Claude Code: ver .claude/.gitignore
 node_modules/
 

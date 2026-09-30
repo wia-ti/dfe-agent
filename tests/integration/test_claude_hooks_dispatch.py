@@ -65,7 +65,10 @@ def _write(tool: str, agent_type: str | None = None) -> dict[str, Any]:
         (_bash("git push", "Explore"), 2),
         # deployer
         (_bash("git push origin main", "deployer"), 0),
-        (_bash("npm publish --access public", "deployer"), 0),
+        (_bash("npm publish --access public", "deployer"), 2),
+        (_bash("gh release upload rag-base storage/dfe.db.gz --clobber", "deployer"), 0),
+        (_bash('git commit -m "feat: x"'), 0),
+        (_bash('git commit -m "sem padrao"'), 2),
         (_bash("rm -rf src", "deployer"), 2),
         (_write("Edit", "deployer"), 2),
         # code-reviewer

@@ -6,6 +6,7 @@ Sub-comandos:
     - reindex: dropa vec_chunks + sidecars (chunk_metadata/fts_chunks/
       doc_summaries de detalhe) e dispara ``python -m src.indexer.ingest``.
     - stats: imprime contadores da base (docs, chunks, summaries, etc.).
+    - export: gera ``dfe.db.gz`` + ``dfe.db.gz.sha256`` para o GitHub Releases.
 
 Uso:
     $ python -m src.ragctl migrate
@@ -16,7 +17,10 @@ Uso:
 from __future__ import annotations
 
 import argparse
+import gzip
+import hashlib
 import json
+import shutil
 import sqlite3
 import subprocess
 import sys
@@ -181,6 +185,68 @@ def cmd_backfill_summaries(args: argparse.Namespace) -> int:
     return 0
 
 
+EXPORT_GZ_NAME: str = "dfe.db.gz"
+EXPORT_SHA_NAME: str = "dfe.db.gz.sha256"
+
+
+def cmd_export(args: argparse.Namespace) -> int:
+    """Empacota a base em ``dfe.db.gz`` + ``dfe.db.gz.sha256`` (Sprint 20).
+
+    A base RAG nao e' versionada no git: vive no GitHub Releases
+    (release ``rag-base``, copiada para cada ``vX.Y.Z`` pelo CI). O
+    snapshot usa a backup API do SQLite (consistente mesmo com WAL) e o
+    gzip grava ``mtime=0`` para que a mesma base gere o mesmo sha.
+    """
+    db_path: Path = args.db_path
+    out_dir: Path = args.out_dir
+    if not db_path.exists():
+        print(f"# DB nao encontrado: {db_path}", file=sys.stderr)
+        return 1
+    out_dir.mkdir(parents=True, exist_ok=True)
+    gz_path: Path = out_dir / EXPORT_GZ_NAME
+    sha_path: Path = out_dir / EXPORT_SHA_NAME
+    snapshot: Path = out_dir / f".{EXPORT_GZ_NAME}.snapshot"
+    gz_tmp: Path = out_dir / f".{EXPORT_GZ_NAME}.tmp"
+
+    try:
+        src_conn = sqlite3.connect(f"{db_path.resolve().as_uri()}?mode=ro", uri=True)
+        dst_conn = sqlite3.connect(snapshot)
+        try:
+            src_conn.backup(dst_conn)
+            # O consumidor abre a base read-only: nada de WAL herdado da origem.
+            dst_conn.execute("PRAGMA journal_mode=DELETE")
+        finally:
+            dst_conn.close()
+            src_conn.close()
+        digest_obj = hashlib.sha256()
+        with open(snapshot, "rb") as raw, open(gz_tmp, "wb") as out:
+            with gzip.GzipFile(filename="", mode="wb", fileobj=out, mtime=0) as gz:
+                shutil.copyfileobj(raw, gz)
+        with open(gz_tmp, "rb") as fh:
+            for block in iter(lambda: fh.read(1 << 20), b""):
+                digest_obj.update(block)
+        gz_tmp.replace(gz_path)
+    finally:
+        snapshot.unlink(missing_ok=True)
+        gz_tmp.unlink(missing_ok=True)
+
+    digest: str = digest_obj.hexdigest()
+    sha_path.write_text(f"{digest}\n", encoding="utf-8")
+    print(
+        json.dumps(
+            {
+                "gz_path": str(gz_path),
+                "sha256_path": str(sha_path),
+                "sha256": digest,
+                "bytes": gz_path.stat().st_size,
+                "schema_version": read_user_version(db_path),
+            },
+            indent=2,
+        )
+    )
+    return 0
+
+
 def _build_arg_parser() -> argparse.ArgumentParser:
     parser: argparse.ArgumentParser = argparse.ArgumentParser(
         prog="python -m src.ragctl",
@@ -244,6 +310,18 @@ def _build_arg_parser() -> argparse.ArgumentParser:
     )
     sub_backfill.set_defaults(func=cmd_backfill_summaries)
 
+    sub_export = sub.add_parser(
+        "export",
+        help="Gera dfe.db.gz + dfe.db.gz.sha256 para publicar no GitHub Releases.",
+    )
+    sub_export.add_argument(
+        "--out-dir",
+        type=Path,
+        default=DEFAULT_STORAGE_DIR,
+        help="Diretorio de saida (default: storage/).",
+    )
+    sub_export.set_defaults(func=cmd_export)
+
     return parser
 
 
@@ -266,4 +344,5 @@ __all__ = [
     "cmd_reindex",
     "cmd_stats",
     "cmd_backfill_summaries",
+    "cmd_export",
 ]
