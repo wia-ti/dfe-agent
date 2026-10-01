@@ -1,3 +1,14 @@
+## [1.3.0](https://github.com/wia-ti/dfe-agent/compare/v1.2.5...v1.3.0) (2026-10-01)
+
+### Features
+
+* **release:** semantic-release no GitHub Actions e base RAG so no GitHub Releases ([2a1ce79](https://github.com/wia-ti/dfe-agent/commit/2a1ce79499ca6f052525c024ebb19b5603d3ac84))
+
+### Bug Fixes
+
+* **dfe-agent:** sincronizar assets no pretest para o CI encontrar dist/agent.md ([e302839](https://github.com/wia-ti/dfe-agent/commit/e3028392df1517c7fd2afb1a4c3f217cef3db576))
+* **rag:** publicar base RAG na release rag-base (primeira release automatica) ([49668d2](https://github.com/wia-ti/dfe-agent/commit/49668d2a7eb66dac9af6fc27c238605fbd3f68c6))
+
 # Changelog
 
 Todas as mudancas notaveis neste projeto sao documentadas aqui.

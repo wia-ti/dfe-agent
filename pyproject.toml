@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "dfe-agent"
-version = "0.1.0"
+version = "1.3.0"
 description = "Agente local que coleta documentacao fiscal eletronica oficial, indexa em base RAG local e responde perguntas em linguagem natural fundamentadas em notas tecnicas."
 readme = "README.md"
 requires-python = ">=3.11"
