@@ -19,7 +19,7 @@
   "scripts": {
     "build": "tsc",
     "prepack": "npm run build && npm run sync",
-    "pretest": "npm run build",
+    "pretest": "npm run build && npm run sync",
     "test": "tsx --test tests/scaffold.test.ts tests/sync-assets.test.ts tests/drift-check.test.ts tests/cli/skeleton.test.ts tests/query/embedder.test.ts tests/query/ftsSearch.test.ts tests/query/vectorSearch.test.ts tests/query/hybrid.test.ts tests/query/cache.test.ts tests/query/orchestrator.test.ts tests/query/paths.test.ts tests/query/index.test.ts tests/integration/test_embedding_parity.test.ts",
     "test:e2e": "powershell -ExecutionPolicy Bypass -File tests/e2e/smoke-test.ps1",
     "lint": "tsc --noEmit",
