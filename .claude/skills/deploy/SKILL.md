@@ -147,9 +147,17 @@ onde acompanhar: `https://github.com/wia-ti/dfe-agent/actions`.
 
 ---
 
-## Fase 4 — RAG depois (sincrono)
+## Fase 4 — RAG depois (feita pelo `@dev`, sincrono)
 
-Gravar `.claude/rag/knowledge/<date>-deployer-<contexto>.md` com:
+> Ordem: o deployer pula esta fase e vai direto para a Fase 5. A Fase 4
+> roda na sessao principal **depois** que o relatorio da Fase 5 chega.
+
+O deployer **nao grava** a nota: ele nao tem `Write`/`Edit` (adicionar
+seria backdoor) e o hook bloqueia redirecionamento `>`. Ele termina na
+Fase 5 com o relatorio, incluindo os comandos executados com exit code e
+o resultado da validacao. Quando o subagent devolve, o `@dev` (sessao
+principal) grava `.claude/rag/knowledge/<date>-deployer-<contexto>.md`
+a partir desse relatorio, com:
 
 ```markdown
 # Deployment -- <modo> -- <YYYY-MM-DD>
@@ -164,11 +172,18 @@ Gravar `.claude/rag/knowledge/<date>-deployer-<contexto>.md` com:
 - <resultado de `gh release view` ou `git log --oneline -1`>
 ```
 
-Depois, **sincronamente**:
+Depois, **sincronamente** (o `--agent deployer` e' obrigatorio: o slug
+inferido do nome do arquivo seria `deployer-<contexto>`):
 
 ```bash
-npx tsx .claude/rag/embed.ts --file .claude/rag/knowledge/<arquivo>.md
+npx tsx .claude/rag/embed.ts --file .claude/rag/knowledge/<arquivo>.md --agent deployer
 ```
+
+No Windows, o `tsx` pode abortar no shutdown do Node com
+`Assertion failed: (env) != nullptr` (`RemoveEnvironmentCleanupHook`).
+Em 2026-10-01 o `embed.ts` ja' tinha gravado quando abortou; confira
+rodando o `embed.ts` de novo, que deve responder `skip (hash ja existe)`.
+O `search.ts`, no mesmo caso, terminou sem devolver resultados.
 
 ---
 
@@ -181,9 +196,12 @@ npx tsx .claude/rag/embed.ts --file .claude/rag/knowledge/<arquivo>.md
 - rag-base: <sha curto> (so' em --base)
 - Release: o semantic-release decide a versao no Actions (link acima)
 - Proxima acao humana: acompanhar o workflow `release`
+
+### Comandos executados (insumo da nota RAG do `@dev`)
+- <comando> -> exit <N>
 ```
 
-Imprimir o relatorio e parar.
+Imprimir o relatorio e parar. A Fase 4 fica com o `@dev`.
 
 ---
 

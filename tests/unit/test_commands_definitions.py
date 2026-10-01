@@ -229,6 +229,25 @@ def test_deploy_command_calls_embed_ts_in_final_phase() -> None:
     )
 
 
+def test_deploy_rag_capture_is_owned_by_dev() -> None:
+    """A nota do RAG depois e' gravada pelo `@dev`, nao pelo deployer.
+
+    O deployer nao tem `Write`/`Edit` e o hook bloqueia `>`, entao nao
+    consegue criar o `.md` em `.claude/rag/knowledge/`.
+    """
+    text = _read("deploy")
+    fase4 = text.split("## Fase 4", 1)[1].split("## Fase 5", 1)[0]
+    assert "`@dev`" in fase4, "Fase 4 do `/deploy` deve ser feita pelo `@dev`."
+    assert "--agent deployer" in fase4, (
+        "O `@dev` deve rodar `embed.ts` com `--agent deployer` "
+        "(o nome do arquivo nao infere o slug)."
+    )
+    agent_text = (HARNESS_DIR / "agents" / "deployer.md").read_text(encoding="utf-8")
+    assert "embed.ts" not in agent_text, (
+        "O workflow do deployer nao deve mandar ele rodar `embed.ts`."
+    )
+
+
 def test_deploy_command_documents_modes() -> None:
     """Sprint 20: `/deploy` tem 2 modos (bare e `--base`); tag/npm/release sao do semantic-release."""
     text = _read("deploy")

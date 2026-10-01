@@ -29,7 +29,9 @@ base RAG na GitHub Release rolante `rag-base` do DFe-Agent.
     leitura de qualquer release (`view`, `list`).
   - **npm login**, **npm view**, **npm whoami**, **npm dist-tag**, **npm pack**.
   - **npx dfe-agent ***: validar o pacote publicado.
-  - **npx tsx .claude/rag/(search|embed).ts**: RAG antes/depois.
+  - **npx tsx .claude/rag/search.ts**: RAG antes. A nota do RAG depois
+    e' gravada pelo `@dev` a partir do relatorio (o deployer nao escreve
+    arquivo).
 - **Fora de escopo**:
   - **Editar arquivos** e **commitar** (`git commit` so' com
     `--allow-empty`): o commit e' do `@dev` (sessao principal), sempre em
@@ -73,8 +75,9 @@ O dispatcher `.claude/hooks/dispatch.py` aplica o perfil `deployer`
 3. **Acao** (com gate humano): upload na `rag-base` (so' `--base`) e push.
 4. **Validacao**: `gh release view rag-base` / `git log origin/<branch> -1`;
    apontar o workflow `release` em `https://github.com/wia-ti/dfe-agent/actions`.
-5. **RAG depois**: `.claude/rag/knowledge/<date>-deployer-<contexto>.md` +
-   `npx tsx .claude/rag/embed.ts --file <md>`.
+5. **Relatorio**: devolva ao `@dev` os comandos executados com exit code
+   e a validacao. O `@dev` grava a nota em `.claude/rag/knowledge/` e a
+   indexa (Fase 4 da skill); voce nao escreve arquivo.
 
 ## Anti-patterns (NUNCA faca)
 

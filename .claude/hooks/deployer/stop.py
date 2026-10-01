@@ -5,9 +5,9 @@ Diferenca vs `@dev/stop.py`:
       se payload tem `tool_writes_count > 0`.
     - `@deployer` apenas retorna 0 (deploy e' acao atomica).
 
-RAG capture do deployer e' feita explicitamente pelo slash command
-`/deploy` na Fase 4 (comando `npx tsx .claude/rag/embed.ts --file <md>`
-sincrono), NAO via hook stop assincrono.
+RAG capture do `/deploy` e' feita pelo `@dev` na Fase 4, a partir do
+relatorio do deployer (`npx tsx .claude/rag/embed.ts --file <md>
+--agent deployer` sincrono), NAO via hook stop assincrono.
 
 Exit codes:
     0 -> sempre (deployer NAO bloqueia encerramento).
